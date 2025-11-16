@@ -8621,6 +8621,21 @@ const ProviderDashboard = ({ onLogout }) => {
 
 // Main App Component
 function App() {
+  // Redirect de www para não-www
+  useEffect(() => {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    const pathname = window.location.pathname;
+    const search = window.location.search;
+    const hash = window.location.hash;
+    
+    // Se acessar www.controleisp.com.br, redireciona para controleisp.com.br (sem www)
+    if (hostname === 'www.controleisp.com.br') {
+      const newUrl = `${protocol}//controleisp.com.br${pathname}${search}${hash}`;
+      window.location.replace(newUrl);
+    }
+  }, []);
+
   return (
     <Router>
       <Toaster 
