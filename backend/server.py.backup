@@ -36,59 +36,10 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
 import io
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-import asyncio
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-import boto3
-from botocore.exceptions import ClientError
 
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
-
-# Configure Cloudinary (Legacy - keeping for backward compatibility)
-cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
-api_key = os.environ.get('CLOUDINARY_API_KEY')
-api_secret = os.environ.get('CLOUDINARY_API_SECRET')
-
-print(f"[CLOUDINARY-CONFIG] Cloud Name: {cloud_name}")
-print(f"[CLOUDINARY-CONFIG] API Key: {api_key}")
-print(f"[CLOUDINARY-CONFIG] API Secret: {'*' * len(api_secret) if api_secret else 'None'}")
-
-cloudinary.config(
-    cloud_name=cloud_name,
-    api_key=api_key,
-    api_secret=api_secret,
-    secure=True
-)
-
-# Configure Cloudflare R2
-R2_ACCESS_KEY_ID = os.environ.get('R2_ACCESS_KEY_ID')
-R2_SECRET_ACCESS_KEY = os.environ.get('R2_SECRET_ACCESS_KEY')
-R2_ACCOUNT_ID = os.environ.get('R2_ACCOUNT_ID')
-R2_BUCKET_NAME = os.environ.get('R2_BUCKET_NAME')
-R2_ENDPOINT_URL = os.environ.get('R2_ENDPOINT_URL')
-R2_PUBLIC_URL = os.environ.get('R2_PUBLIC_URL')
-
-print(f"[R2-CONFIG] Account ID: {R2_ACCOUNT_ID}")
-print(f"[R2-CONFIG] Bucket Name: {R2_BUCKET_NAME}")
-print(f"[R2-CONFIG] Endpoint: {R2_ENDPOINT_URL}")
-print(f"[R2-CONFIG] Public URL: {R2_PUBLIC_URL}")
-print(f"[R2-CONFIG] Access Key ID: {R2_ACCESS_KEY_ID[:10]}..." if R2_ACCESS_KEY_ID else "[R2-CONFIG] Access Key ID: None")
-
-# Initialize R2 client
-s3_client = boto3.client(
-    's3',
-    endpoint_url=R2_ENDPOINT_URL,
-    aws_access_key_id=R2_ACCESS_KEY_ID,
-    aws_secret_access_key=R2_SECRET_ACCESS_KEY,
-    region_name='auto'
-)
-
-print(f"[R2-CONFIG] Cliente S3 inicializado com sucesso")
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -96,7 +47,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI(title="ControleIsp", description="Sistema de Gestão de Clientes Negativos")
+app = FastAPI(title="Control-Isp", description="Sistema de Gestão de Clientes Negativos")
 
 # Create uploads directory and mount static files
 uploads_dir = Path("/app/uploads")
@@ -119,7 +70,7 @@ SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
 SMTP_USERNAME = os.environ.get('SMTP_USERNAME')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
 EMAIL_FROM = os.environ.get('EMAIL_FROM')
-EMAIL_FROM_NAME = os.environ.get('EMAIL_FROM_NAME', 'ControleIsp')
+EMAIL_FROM_NAME = os.environ.get('EMAIL_FROM_NAME', 'Control-Isp')
 
 # Mercado Pago Configuration
 MERCADOPAGO_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
@@ -130,109 +81,6 @@ MERCADOPAGO_WEBHOOK_SECRET = os.environ.get('MERCADOPAGO_WEBHOOK_SECRET')
 mp_sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
 
 security = HTTPBearer()
-
-# Initialize APScheduler for auto-sync
-scheduler = AsyncIOScheduler()
-
-# Function to run auto-sync task
-async def run_scheduled_auto_sync():
-    """Background task to check and run auto-sync for integrations"""
-    try:
-        from datetime import datetime, time as dt_time
-        
-        now = datetime.now()
-        current_time_str = now.strftime("%H:%M")
-        
-        print(f"\n{'='*80}")
-        print(f"🕐 SCHEDULER AUTO-SYNC VERIFICANDO às {current_time_str}")
-        print(f"{'='*80}\n")
-        
-        # Find all integrations with auto_sync_enabled = True
-        integrations = await db.provider_integrations.find({
-            "auto_sync_enabled": True,
-            "is_active": True
-        }).to_list(length=None)
-        
-        print(f"📊 Encontradas {len(integrations)} integrações com auto-sync ativo")
-        
-        if not integrations:
-            print("⏭️  Nenhuma integração com auto-sync ativo. Aguardando...")
-            return
-        
-        for integration in integrations:
-            # Check if it's time to sync (compare time only)
-            auto_sync_time = integration.get("auto_sync_time", "05:00")
-            
-            # Allow a 1-minute window for sync (executado a cada 1 minuto)
-            hour, minute = map(int, auto_sync_time.split(":"))
-            sync_time = dt_time(hour, minute)
-            current_time = dt_time(now.hour, now.minute)
-            
-            # Check if current time matches sync time
-            if current_time == sync_time:
-                integration_name = integration.get("display_name", "Sem nome")
-                integration_type = integration["integration_type"]
-                provider_id = integration["provider_id"]
-                
-                print(f"\n🚀 INICIANDO SINCRONIZAÇÃO:")
-                print(f"   📋 Integração: {integration_name}")
-                print(f"   🔧 Tipo: {integration_type.upper()}")
-                print(f"   ⏰ Horário: {auto_sync_time}")
-                
-                try:
-                    # Run sync based on integration type
-                    if integration_type == "ixc":
-                        sync_result = await sync_ixc_data(integration, provider_id)
-                    elif integration_type == "mk-auth":
-                        sync_result = await sync_mkauth_data(integration, provider_id)
-                    elif integration_type == "sgp":
-                        sync_result = await sync_sgp_data(integration, provider_id)
-                    elif integration_type == "radiusnet":
-                        sync_result = await sync_radiusnet_data(integration, provider_id)
-                    else:
-                        sync_result = {
-                            "status": "error",
-                            "message": f"Tipo de integração não suportado: {integration_type}"
-                        }
-                    
-                    # Update last_sync
-                    await db.provider_integrations.update_one(
-                        {"id": integration["id"]},
-                        {
-                            "$set": {
-                                "last_sync": datetime.now(timezone.utc).isoformat(),
-                                "last_sync_status": sync_result.get("status", "error"),
-                                "last_sync_message": sync_result.get("message", ""),
-                                "sync_count": integration.get("sync_count", 0) + 1
-                            }
-                        }
-                    )
-                    
-                    if sync_result.get("status") == "success":
-                        print(f"   ✅ SUCESSO: {sync_result.get('message')}")
-                        print(f"   📊 Clientes sincronizados: {sync_result.get('clients_synced', 0)}")
-                    else:
-                        print(f"   ❌ ERRO: {sync_result.get('message')}")
-                    
-                except Exception as e:
-                    print(f"   ❌ ERRO CRÍTICO: {str(e)}")
-                    await db.provider_integrations.update_one(
-                        {"id": integration["id"]},
-                        {
-                            "$set": {
-                                "last_sync": datetime.now(timezone.utc).isoformat(),
-                                "last_sync_status": "error",
-                                "last_sync_message": f"Erro: {str(e)}"
-                            }
-                        }
-                    )
-        
-        print(f"\n{'='*80}")
-        print(f"✅ SCHEDULER AUTO-SYNC FINALIZADO")
-        print(f"{'='*80}\n")
-        
-    except Exception as e:
-        print(f"\n❌ ERRO NO SCHEDULER AUTO-SYNC: {str(e)}\n")
 
 
 # Utility Functions
@@ -494,7 +342,7 @@ def generate_contract_pdf(contract_text: str, title: str, filename: str) -> Path
     
     # Add signature section
     story.append(Spacer(1, 30))
-    story.append(Paragraph("Documento gerado digitalmente pelo Sistema ControleIsp", signature_style))
+    story.append(Paragraph("Documento gerado digitalmente pelo Sistema Control-Isp", signature_style))
     story.append(Paragraph(f"Data de geração: {datetime.now(timezone.utc).strftime('%d/%m/%Y às %H:%M:%S UTC')}", signature_style))
     
     # Build PDF
@@ -541,7 +389,7 @@ def create_password_reset_email(email: str, token: str) -> tuple:
     """Create password reset email content"""
     reset_url = f"{os.environ.get('FRONTEND_URL')}/reset-password?token={token}"
     
-    subject = "ControleIsp - Recuperação de Senha"
+    subject = "Control-Isp - Recuperação de Senha"
     
     # HTML email template
     html_body = f"""
@@ -550,12 +398,12 @@ def create_password_reset_email(email: str, token: str) -> tuple:
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Recuperação de Senha - ControleIsp</title>
+        <title>Recuperação de Senha - Control-Isp</title>
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f5f5f5;">
         <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
             <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #dc2626; margin-bottom: 10px;">ControleIsp</h1>
+                <h1 style="color: #dc2626; margin-bottom: 10px;">Control-Isp</h1>
                 <p style="color: #666; margin: 0;">Sistema de Gestão de Clientes Negativos</p>
             </div>
             
@@ -563,7 +411,7 @@ def create_password_reset_email(email: str, token: str) -> tuple:
             
             <p style="color: #555; margin-bottom: 20px;">
                 Olá,<br><br>
-                Você solicitou a redefinição de senha para sua conta no ControleIsp.
+                Você solicitou a redefinição de senha para sua conta no Control-Isp.
                 Para prosseguir com a alteração, clique no botão abaixo:
             </p>
             
@@ -591,7 +439,7 @@ def create_password_reset_email(email: str, token: str) -> tuple:
             <div style="text-align: center; color: #888; font-size: 12px;">
                 <p style="margin: 5px 0;">Desenvolvido para Provedores de Internet em Todo o Brasil</p>
                 <p style="margin: 5px 0;">CNPJ: 47.223.088/0001-74</p>
-                <p style="margin: 5px 0;">© 2025 ControleIsp - Todos os Direitos Reservados</p>
+                <p style="margin: 5px 0;">© 2025 Control-Isp - Todos os Direitos Reservados</p>
             </div>
         </div>
     </body>
@@ -600,11 +448,11 @@ def create_password_reset_email(email: str, token: str) -> tuple:
     
     # Plain text version
     text_body = f"""
-    ControleIsp - Recuperação de Senha
+    Control-Isp - Recuperação de Senha
     
     Olá,
     
-    Você solicitou a redefinição de senha para sua conta no ControleIsp.
+    Você solicitou a redefinição de senha para sua conta no Control-Isp.
     Para prosseguir com a alteração, acesse o link abaixo:
     
     {reset_url}
@@ -615,7 +463,7 @@ def create_password_reset_email(email: str, token: str) -> tuple:
     ---
     Desenvolvido para Provedores de Internet em Todo o Brasil
     CNPJ: 47.223.088/0001-74
-    © 2025 ControleIsp - Todos os Direitos Reservados
+    © 2025 Control-Isp - Todos os Direitos Reservados
     """
     
     return subject, html_body, text_body
@@ -790,9 +638,8 @@ class Subscription(BaseModel):
     paid_at: Optional[datetime] = None
     expires_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(days=30))
     reminder_sent: bool = False
-    is_promotional: bool = False  # Promoção ativa
-    promotional_type: Optional[str] = None  # "first_month_free", "black_friday", etc
-    promotional_months_remaining: int = 0  # Quantos meses promocionais restam (para Black Friday = 3)
+    is_promotional: bool = False  # Nova promoção: primeiro mês grátis
+    promotional_type: Optional[str] = None  # "first_month_free", etc.
 
 
 class Payment(BaseModel):
@@ -839,7 +686,6 @@ class ProviderStats(BaseModel):
     phone: str
     address: str  # Endereço sem bairro
     bairro: str  # Bairro separado
-    logo_url: Optional[str] = None  # URL do logo no R2
     is_active: bool = True
     is_blocked: bool = False
     blocked_at: Optional[datetime] = None
@@ -897,8 +743,6 @@ class CrossProviderClient(BaseModel):
     # Provider info (who registered the client)
     provider_name: str
     provider_cnpj: str
-    provider_logo: Optional[str] = None
-    provider_notes: Optional[str] = None
     days_negative: int
 
 
@@ -946,15 +790,6 @@ class NotificationRead(BaseModel):
     provider_id: str
     notification_id: str
     read_at: datetime
-
-# Provider Profile Update Models
-class ProviderProfileUpdate(BaseModel):
-    email: Optional[str] = None
-    phone: Optional[str] = None
-
-class ProviderPasswordUpdate(BaseModel):
-    old_password: str
-    new_password: str
 
 
 class Visitor(BaseModel):
@@ -1212,9 +1047,9 @@ async def create_pix_payment(provider_id: str, amount: float = 99.00):
                     "number": re.sub(r'[^0-9]', '', provider["cnpj"])
                 }
             },
-            "description": f"ControleIsp - Mensalidade do Sistema - {provider['name'][:50]}",
+            "description": f"Control-Isp - Mensalidade do Sistema - {provider['name'][:50]}",
             "external_reference": f"control_isp_{provider_id}_{int(datetime.now().timestamp())}",
-            "notification_url": "https://www.controleisp.com.br/api/payment/webhook"
+            "notification_url": "https://www.control-isp.com.br/api/payment/webhook"
         }
 
         # Create payment in Mercado Pago
@@ -1303,12 +1138,12 @@ async def send_payment_reminder(provider_id: str):
         if not provider:
             return False
 
-        subject = "🔔 ControleIsp - Renovação da Assinatura em 2 dias"
+        subject = "🔔 Control-Isp - Renovação da Assinatura em 2 dias"
         
         html_body = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 30px; text-align: center;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">ControleIsp</h1>
+                <h1 style="color: white; margin: 0; font-size: 28px;">Control-Isp</h1>
                 <p style="color: #fecaca; margin: 10px 0 0 0;">Sistema de Gestão de Clientes</p>
             </div>
             
@@ -1316,7 +1151,7 @@ async def send_payment_reminder(provider_id: str):
                 <h2 style="color: #dc2626;">Olá, {provider['name']}!</h2>
                 
                 <p style="font-size: 16px; line-height: 1.6;">
-                    Sua assinatura do <strong>ControleIsp</strong> vence em <strong>2 dias</strong>.
+                    Sua assinatura do <strong>Control-Isp</strong> vence em <strong>2 dias</strong>.
                 </p>
                 
                 <p style="font-size: 16px; line-height: 1.6;">
@@ -1325,7 +1160,7 @@ async def send_payment_reminder(provider_id: str):
                 </p>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="https://www.controleisp.com.br" 
+                    <a href="https://www.control-isp.com.br" 
                        style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); 
                               color: white; padding: 15px 30px; text-decoration: none; 
                               border-radius: 8px; font-weight: bold; display: inline-block;">
@@ -1340,24 +1175,24 @@ async def send_payment_reminder(provider_id: str):
             
             <div style="background: #dc2626; padding: 20px; text-align: center;">
                 <p style="color: white; margin: 0; font-size: 14px;">
-                    ControleIsp - Sistema Profissional de Gestão
+                    Control-Isp - Sistema Profissional de Gestão
                 </p>
             </div>
         </div>
         """
         
         text_body = f"""
-        ControleIsp - Renovação da Assinatura
+        Control-Isp - Renovação da Assinatura
 
         Olá, {provider['name']}!
 
-        Sua assinatura do ControleIsp vence em 2 dias.
+        Sua assinatura do Control-Isp vence em 2 dias.
 
         Para manter o acesso ao sistema, realize o pagamento da mensalidade de R$ 99,00 via PIX.
 
-        Acesse: https://www.controleisp.com.br
+        Acesse: https://www.control-isp.com.br
 
-        ControleIsp - Sistema Profissional de Gestão
+        Control-Isp - Sistema Profissional de Gestão
         """
         
         if SMTP_USERNAME and SMTP_PASSWORD:
@@ -1514,7 +1349,6 @@ async def get_providers(current_user=Depends(get_current_user)):
             phone=provider["phone"],
             address=provider["address"],
             bairro=provider.get("bairro", "Centro"),
-            logo_url=provider.get("logo_url"),
             is_active=provider.get("is_active", True),
             is_blocked=provider.get("is_blocked", False),
             blocked_at=provider.get("blocked_at"),
@@ -3067,7 +2901,7 @@ Motivo: {client["reason"]}
 
 🎯 1. OBJETO DO CONTRATO
 O presente contrato tem por objeto a prestação de serviços de sistema digital para 
-controle interno de dívidas entre provedores de internet, denominado "ControleIsp", 
+controle interno de dívidas entre provedores de internet, denominado "Control-Isp", 
 destinado exclusivamente ao controle e gestão de inadimplências.
 
 🔒 2. COMPROMISSO DE SIGILO E CONFIDENCIALIDADE
@@ -3083,7 +2917,7 @@ informar ou comunicar aos clientes sobre a existência do sistema ou sobre infor
 nele contidas. A quebra desta cláusula resulta em multa de R$ 10.000,00.
 
 ⚖️ 3. ISENÇÃO DE RESPONSABILIDADE
-3.1. ISENÇÃO TOTAL: O ControleIsp se isenta de toda e qualquer 
+3.1. ISENÇÃO TOTAL: O Control-Isp se isenta de toda e qualquer 
 responsabilidade por problemas, conflitos, disputas ou questões que possam surgir 
 entre o provedor contratante e seus clientes.
 
@@ -3129,7 +2963,7 @@ da assinatura digital ({current_date}) e expirando automaticamente em {(datetime
 8.2.1. RENOVAÇÃO: Ao término da vigência, o contrato poderá ser renovado mediante 
 acordo entre as partes, permanecendo válido enquanto houver pagamento em dia.
 
-8.2.2. REVISÃO DE VALOR: A ControleIsp reserva-se o direito de revisar o valor 
+8.2.2. REVISÃO DE VALOR: A Control-Isp reserva-se o direito de revisar o valor 
 da mensalidade ao final de cada período de vigência, comunicando eventuais 
 alterações com antecedência mínima de 30 (trinta) dias. O valor atual de 
 R$ 99,00 (noventa e nove reais) mensais vigora durante todo o primeiro período.
@@ -3194,7 +3028,7 @@ da assinatura digital ({current_date}) e expirando automaticamente em {(datetime
 10.2.1. RENOVAÇÃO: Ao término da vigência, o contrato poderá ser renovado mediante 
 acordo entre as partes, permanecendo válido enquanto houver pagamento em dia.
 
-10.2.2. REVISÃO DE VALOR: A ControleIsp reserva-se o direito de revisar o valor 
+10.2.2. REVISÃO DE VALOR: A Control-Isp reserva-se o direito de revisar o valor 
 da mensalidade ao final de cada período de vigência, comunicando eventuais 
 alterações com antecedência mínima de 30 (trinta) dias. O valor atual de 
 R$ 99,00 (noventa e nove reais) mensais vigora durante todo o primeiro período.
@@ -3249,12 +3083,12 @@ Certificado Digital: ICP-Brasil Válido
 ================================================
 
 IMPORTANTE: Este documento possui valor legal e comprova a aceitação 
-de todos os termos e condições do serviço ControleIsp. A assinatura
+de todos os termos e condições do serviço Control-Isp. A assinatura
 digital possui a mesma validade jurídica de uma assinatura manuscrita
 conforme MP 2.200-2/2001 e Lei 14.063/2020.
 
 =================================
-Este documento foi gerado automaticamente pelo sistema ControleIsp
+Este documento foi gerado automaticamente pelo sistema Control-Isp
 Contrato assinado digitalmente em: {current_datetime}
 Certificação Digital: ICP-Brasil - GOV.BR
 """
@@ -3321,7 +3155,7 @@ Data de Adesão: {current_date}
 
 🎯 1. OBJETO DO CONTRATO
 O presente contrato tem por objeto a prestação de serviços de sistema digital para 
-controle interno de dívidas entre provedores de internet, denominado "ControleIsp", 
+controle interno de dívidas entre provedores de internet, denominado "Control-Isp", 
 destinado exclusivamente ao controle e gestão de inadimplências.
 
 🔒 2. COMPROMISSO DE SIGILO E CONFIDENCIALIDADE
@@ -3337,7 +3171,7 @@ informar ou comunicar aos clientes sobre a existência do sistema ou sobre infor
 nele contidas. A quebra desta cláusula resulta em multa de R$ 10.000,00.
 
 ⚖️ 3. ISENÇÃO DE RESPONSABILIDADE
-3.1. ISENÇÃO TOTAL: O ControleIsp se isenta de toda e qualquer 
+3.1. ISENÇÃO TOTAL: O Control-Isp se isenta de toda e qualquer 
 responsabilidade por problemas, conflitos, disputas ou questões que possam surgir 
 entre o provedor contratante e seus clientes.
 
@@ -3383,7 +3217,7 @@ da assinatura digital ({current_date}) e expirando automaticamente em {(datetime
 8.2.1. RENOVAÇÃO: Ao término da vigência, o contrato poderá ser renovado mediante 
 acordo entre as partes, permanecendo válido enquanto houver pagamento em dia.
 
-8.2.2. REVISÃO DE VALOR: A ControleIsp reserva-se o direito de revisar o valor 
+8.2.2. REVISÃO DE VALOR: A Control-Isp reserva-se o direito de revisar o valor 
 da mensalidade ao final de cada período de vigência, comunicando eventuais 
 alterações com antecedência mínima de 30 (trinta) dias. O valor atual de 
 R$ 99,00 (noventa e nove reais) mensais vigora durante todo o primeiro período.
@@ -3448,7 +3282,7 @@ da assinatura digital ({current_date}) e expirando automaticamente em {(datetime
 10.2.1. RENOVAÇÃO: Ao término da vigência, o contrato poderá ser renovado mediante 
 acordo entre as partes, permanecendo válido enquanto houver pagamento em dia.
 
-10.2.2. REVISÃO DE VALOR: A ControleIsp reserva-se o direito de revisar o valor 
+10.2.2. REVISÃO DE VALOR: A Control-Isp reserva-se o direito de revisar o valor 
 da mensalidade ao final de cada período de vigência, comunicando eventuais 
 alterações com antecedência mínima de 30 (trinta) dias. O valor atual de 
 R$ 99,00 (noventa e nove reais) mensais vigora durante todo o primeiro período.
@@ -3502,12 +3336,12 @@ Certificado Digital: ICP-Brasil Válido
 ================================================
 
 IMPORTANTE: Este documento possui valor legal e comprova a aceitação 
-de todos os termos e condições do serviço ControleIsp. A assinatura
+de todos os termos e condições do serviço Control-Isp. A assinatura
 digital possui a mesma validade jurídica de uma assinatura manuscrita
 conforme MP 2.200-2/2001 e Lei 14.063/2020.
 
 =================================
-Este documento foi gerado automaticamente pelo sistema ControleIsp
+Este documento foi gerado automaticamente pelo sistema Control-Isp
 Contrato assinado digitalmente em: {current_datetime}
 Certificação Digital: ICP-Brasil - GOV.BR
 """
@@ -3550,71 +3384,42 @@ async def generate_whatsapp_charge_message(client_id: str, current_user=Depends(
     if not provider:
         raise HTTPException(status_code=404, detail="Provedor não encontrado")
     
-    # Gerar mensagem personalizada de cobrança com BOLETOS (se houver)
+    # Gerar mensagem personalizada de cobrança com PIX
     debt_value = f"R$ {client['debt_amount']:.2f}"
     pix_key = provider["cnpj"]
     
-    # Verifica se o cliente tem boletos salvos
-    boletos = client.get('boletos', [])
-    
-    # Monta mensagem inicial
-    message = f"""🤖 Olá, *{client['name'].title()}*! Sou o assistente virtual da *{provider['name']}*.
+    message = f"""🔴 *COBRANÇA - {provider['name']}*
 
-📋 Identificamos pendências em sua conta:
-"""
-    
-    # Adiciona informações dos boletos
-    if boletos and len(boletos) > 0:
-        message += f"\n💰 *BOLETOS EM ABERTO:*\n"
-        for idx, boleto in enumerate(boletos, 1):
-            vencimento = boleto.get('vencimento', 'N/A')
-            valor = boleto.get('valor', 0)
-            linha_digitavel = boleto.get('linha_digitavel', '')
-            codigo_barras = boleto.get('codigo_barras', '')
-            url_boleto = boleto.get('url_boleto', '')
-            nosso_numero = boleto.get('nosso_numero', '')
-            
-            message += f"\n📄 *BOLETO {idx}*\n"
-            message += f"💵 Valor: R$ {valor:.2f}\n"
-            message += f"📅 Vencimento: {vencimento}\n"
-            
-            if nosso_numero:
-                message += f"🔢 Nosso Número: {nosso_numero}\n"
-            
-            if url_boleto:
-                message += f"🔗 Link do Boleto: {url_boleto}\n"
-                message += f"📥 Clique para visualizar e pagar\n"
-            
-            if linha_digitavel:
-                message += f"\n📲 *Linha Digitável:*\n`{linha_digitavel}`\n"
-            elif codigo_barras:
-                message += f"\n📲 *Código de Barras:*\n`{codigo_barras}`\n"
-        
-        message += f"\n💵 *TOTAL EM ABERTO:* {debt_value}\n"
-    else:
-        # Caso não tenha boletos (fallback para PIX)
-        message += f"\n💰 *Valor Total:* {debt_value}\n"
-    
-    # Adiciona opção de pagamento via PIX (sempre disponível)
-    message += f"""
-💳 *PAGAMENTO VIA PIX:*
-🔑 Chave: {pix_key}
+Olá, {client['name']}!
+
+Identificamos uma pendência em seu nome em nosso sistema:
+
+📋 *Detalhes da Cobrança:*
+• Cliente: {client['name']}
+• CPF: {client['cpf']}
+• Valor: {debt_value}
+• Motivo: {client['reason']}
+
+💳 *PAGAMENTO VIA PIX - MAIS RÁPIDO:*
+🔑 Chave PIX: {pix_key}
 🏢 Favorecido: {provider['name']}
-💰 Valor: {debt_value}
-"""
-    
-    # Instruções finais
-    message += f"""
-✅ *Já realizou o pagamento?*
-Desconsidere esta mensagem.
+📄 CNPJ: {provider['cnpj']}
+💰 Valor exato: {debt_value}
 
-❓ *Dúvidas ou Negociação?*
-Entre em contato conosco:
-📞 {provider.get('phone', 'Não informado')}
+✅ *Após o pagamento:*
+• Envie o comprovante por WhatsApp
+• Sua situação será regularizada em até 2 horas
+• Evite constrangimentos e restrições
 
-⚠️ Regularize sua situação para evitar transtornos.
+📞 *Dúvidas ou Negociação:*
+Empresa: {provider['name']}
+Telefone: {provider['phone']}
+Email: {provider['email']}
 
-_Este é um contato automático do sistema._
+⚠️ *Importante:* Regularize sua situação o quanto antes para evitar maiores transtornos.
+
+🤝 Contamos com sua colaboração!
+
 _{provider['name']}_"""
 
     # Limpar número de telefone (remover caracteres especiais)
@@ -3631,7 +3436,6 @@ _{provider['name']}_"""
         "debt_amount": debt_value,
         "message": message,
         "whatsapp_url": whatsapp_url,
-        "boletos": boletos,
         "provider_logo": provider.get('logo_url'),
         "provider_name": provider['name']
     }
@@ -3758,7 +3562,6 @@ async def update_client_phone(client_id: str, phone_data: ClientPhoneUpdate, cur
 
 class ClientDebtUpdate(BaseModel):
     debt_amount: float
-    provider_notes: Optional[str] = None
 
 @api_router.patch("/provider/clients/{client_id}/debt")
 async def update_client_debt(client_id: str, debt_data: ClientDebtUpdate, current_user=Depends(get_current_provider)):
@@ -3788,18 +3591,12 @@ async def update_client_debt(client_id: str, debt_data: ClientDebtUpdate, curren
     
     # Update client debt
     old_debt = client.get("debt_amount", 0)
-    update_data = {
-        "debt_amount": debt_data.debt_amount,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Add provider notes if provided
-    if debt_data.provider_notes is not None:
-        update_data["provider_notes"] = debt_data.provider_notes.strip()
-    
     result = await db.clients.update_one(
         {"id": client_id},
-        {"$set": update_data}
+        {"$set": {
+            "debt_amount": debt_data.debt_amount,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
     )
     
     if result.modified_count > 0:
@@ -3921,8 +3718,6 @@ async def format_cross_provider_clients(clients):
             risk_level=client.get("risk_level", 1),
             provider_name=provider["name"],
             provider_cnpj=provider["cnpj"],
-            provider_logo=provider.get("logo_url"),
-            provider_notes=client.get("provider_notes"),
             days_negative=days_negative
         )
         formatted_clients.append(formatted_client)
@@ -4145,79 +3940,82 @@ _Mensagem automática - {provider['name']}_"""
 # Provider Logo Endpoints
 @api_router.post("/provider/logo/upload")
 async def upload_provider_logo(file: UploadFile = File(...), current_user=Depends(get_current_provider)):
-    """Upload logo for provider to Cloudflare R2"""
+    """Upload logo for provider"""
     
-    print(f"[R2-UPLOAD] Iniciando upload de logo para provider: {current_user['user_id']}")
-    print(f"[R2-UPLOAD] Arquivo: {file.filename}, tipo: {file.content_type}")
+    print(f"[PROVIDER-UPLOAD] Iniciando upload de logo para provider: {current_user['user_id']}")
+    print(f"[PROVIDER-UPLOAD] Arquivo: {file.filename}, tipo: {file.content_type}")
     
     # Check subscription
     has_active_subscription = await check_subscription_status(current_user["user_id"])
     if not has_active_subscription:
-        print(f"[R2-UPLOAD] Erro: Assinatura inativa para provider: {current_user['user_id']}")
+        print(f"[PROVIDER-UPLOAD] Erro: Assinatura inativa para provider: {current_user['user_id']}")
         raise HTTPException(status_code=402, detail="Assinatura expirada. Renove para continuar usando o sistema.")
     
     # Validate file type
     if not file.content_type or not file.content_type.startswith('image/'):
-        print(f"[R2-UPLOAD] Erro: Tipo de arquivo inválido: {file.content_type}")
+        print(f"[PROVIDER-UPLOAD] Erro: Tipo de arquivo inválido: {file.content_type}")
         raise HTTPException(status_code=400, detail="Apenas arquivos de imagem são permitidos")
     
-    # Validate file size (max 10MB)
+    # Validate file size (max 5MB)
     content = await file.read()
-    if len(content) > 10 * 1024 * 1024:
-        print(f"[R2-UPLOAD] Erro: Arquivo muito grande: {len(content)} bytes")
-        raise HTTPException(status_code=400, detail="Arquivo muito grande. Máximo 10MB permitido")
+    if len(content) > 5 * 1024 * 1024:
+        print(f"[PROVIDER-UPLOAD] Erro: Arquivo muito grande: {len(content)} bytes")
+        raise HTTPException(status_code=400, detail="Arquivo muito grande. Máximo 5MB permitido")
     
-    print(f"[R2-UPLOAD] Arquivo válido, tamanho: {len(content)} bytes")
+    print(f"[PROVIDER-UPLOAD] Arquivo válido, tamanho: {len(content)} bytes")
     
+    # Create uploads directory if it doesn't exist
+    uploads_dir = Path("/app/uploads")
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    print(f"[PROVIDER-UPLOAD] Diretório verificado: {uploads_dir}")
+    
+    # Generate unique filename
+    file_extension = Path(file.filename).suffix.lower() if file.filename else '.jpg'
+    if file_extension not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+        file_extension = '.jpg'
+    
+    unique_filename = f"logo_{current_user['user_id']}_{uuid.uuid4().hex[:8]}{file_extension}"
+    file_path = uploads_dir / unique_filename
+    print(f"[PROVIDER-UPLOAD] Salvando como: {file_path}")
+    
+    # Save file
     try:
-        # Generate unique filename for R2
-        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'png'
-        object_key = f"provider_logos/{current_user['user_id']}_{uuid.uuid4().hex[:8]}.{file_extension}"
+        with open(file_path, "wb") as buffer:
+            buffer.write(content)
         
-        print(f"[R2-UPLOAD] Fazendo upload para R2 com key: {object_key}")
-        
-        # Upload to R2
-        s3_client.put_object(
-            Bucket=R2_BUCKET_NAME,
-            Key=object_key,
-            Body=content,
-            ContentType=file.content_type,
-            CacheControl='public, max-age=31536000'  # Cache for 1 year
-        )
-        
-        # Generate public URL
-        logo_url = f"{R2_PUBLIC_URL}/{object_key}"
-        print(f"[R2-UPLOAD] Upload concluído! URL: {logo_url}")
-        
-        # Update provider in database
-        result = await db.providers.update_one(
-            {"id": current_user["user_id"]},
-            {"$set": {
-                "logo_url": logo_url,
-                "logo_r2_key": object_key,
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
-        )
-        
-        if result.modified_count == 0:
-            print(f"[R2-UPLOAD] Aviso: Provider não foi atualizado no banco")
-        else:
-            print(f"[R2-UPLOAD] Provider atualizado com sucesso no banco")
-        
-        return {
-            "success": True,
-            "message": "Logo enviada com sucesso!",
-            "logo_url": logo_url
-        }
-        
-    except ClientError as e:
-        error_code = e.response['Error']['Code']
-        error_message = e.response['Error']['Message']
-        print(f"[R2-UPLOAD] Erro no upload (ClientError): {error_code} - {error_message}")
-        raise HTTPException(status_code=500, detail=f"Erro ao fazer upload no R2: {error_message}")
+        # Verify file was saved
+        if not file_path.exists():
+            print("[PROVIDER-UPLOAD] Erro: Arquivo não foi salvo")
+            raise HTTPException(status_code=500, detail="Falha ao salvar arquivo")
+            
+        print("[PROVIDER-UPLOAD] Arquivo salvo com sucesso")
     except Exception as e:
-        print(f"[R2-UPLOAD] Erro no upload: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erro ao fazer upload: {str(e)}")
+        print(f"[PROVIDER-UPLOAD] Erro ao salvar: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar arquivo: {str(e)}")
+    
+    # Create URL
+    logo_url = get_file_url(unique_filename)
+    print(f"[PROVIDER-UPLOAD] URL gerada: {logo_url}")
+    
+    # Update provider in database
+    result = await db.providers.update_one(
+        {"id": current_user["user_id"]},
+        {"$set": {"logo_url": logo_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.modified_count == 0:
+        # Remove file if database update fails
+        try:
+            file_path.unlink()
+        except OSError:
+            pass
+        raise HTTPException(status_code=500, detail="Erro ao atualizar logo no banco de dados")
+    
+    return {
+        "success": True,
+        "message": "Logo enviada com sucesso!",
+        "logo_url": logo_url
+    }
 
 @api_router.get("/provider/logo")
 async def get_provider_logo(current_user=Depends(get_current_provider)):
@@ -4278,130 +4076,6 @@ async def delete_provider_logo(current_user=Depends(get_current_provider)):
     }
 
 
-# Provider Profile Update Endpoints
-@api_router.patch("/provider/profile")
-async def update_provider_profile(profile_data: ProviderProfileUpdate, current_user=Depends(get_current_provider)):
-    """Update provider email and phone"""
-    
-    # Check subscription
-    has_active_subscription = await check_subscription_status(current_user["user_id"])
-    if not has_active_subscription:
-        raise HTTPException(status_code=402, detail="Assinatura expirada. Renove para continuar usando o sistema.")
-    
-    update_fields = {}
-    
-    # Validate and update email if provided
-    if profile_data.email is not None:
-        email = profile_data.email.strip().lower()
-        if email:
-            # Check if email is already in use by another provider
-            existing = await db.providers.find_one({
-                "email": email,
-                "id": {"$ne": current_user["user_id"]}
-            })
-            if existing:
-                raise HTTPException(status_code=400, detail="Este email já está em uso")
-            update_fields["email"] = email
-    
-    # Validate and update phone if provided
-    if profile_data.phone is not None:
-        phone = profile_data.phone.strip()
-        if phone:
-            update_fields["phone"] = phone
-    
-    if not update_fields:
-        raise HTTPException(status_code=400, detail="Nenhum campo para atualizar")
-    
-    update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
-    
-    # Update provider
-    result = await db.providers.update_one(
-        {"id": current_user["user_id"]},
-        {"$set": update_fields}
-    )
-    
-    if result.modified_count == 0:
-        raise HTTPException(status_code=500, detail="Erro ao atualizar perfil")
-    
-    return {
-        "success": True,
-        "message": "Perfil atualizado com sucesso!",
-        "updated_fields": list(update_fields.keys())
-    }
-
-
-@api_router.patch("/provider/password")
-async def update_provider_password(password_data: ProviderPasswordUpdate, current_user=Depends(get_current_provider)):
-    """Update provider password"""
-    
-    # Check subscription
-    has_active_subscription = await check_subscription_status(current_user["user_id"])
-    if not has_active_subscription:
-        raise HTTPException(status_code=402, detail="Assinatura expirada. Renove para continuar usando o sistema.")
-    
-    # Get current provider
-    provider = await db.providers.find_one({"id": current_user["user_id"]})
-    if not provider:
-        raise HTTPException(status_code=404, detail="Provedor não encontrado")
-    
-    # Verify old password
-    if not verify_password(password_data.old_password, provider["password_hash"]):
-        raise HTTPException(status_code=400, detail="Senha antiga incorreta")
-    
-    # Validate new password
-    if len(password_data.new_password) < 6:
-        raise HTTPException(status_code=400, detail="Nova senha deve ter pelo menos 6 caracteres")
-    
-    # Hash new password
-    new_password_hash = hash_password(password_data.new_password)
-    
-    # Update password
-    result = await db.providers.update_one(
-        {"id": current_user["user_id"]},
-        {"$set": {
-            "password_hash": new_password_hash,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
-    )
-    
-    if result.modified_count == 0:
-        raise HTTPException(status_code=500, detail="Erro ao atualizar senha")
-    
-    return {
-        "success": True,
-        "message": "Senha atualizada com sucesso!"
-    }
-
-
-@api_router.get("/provider/info")
-async def get_provider_info(current_user=Depends(get_current_provider)):
-    """Get full provider information including logo"""
-    
-    # Check subscription
-    has_active_subscription = await check_subscription_status(current_user["user_id"])
-    if not has_active_subscription:
-        raise HTTPException(status_code=402, detail="Assinatura expirada. Renove para continuar usando o sistema.")
-    
-    # Get provider
-    provider = await db.providers.find_one({"id": current_user["user_id"]})
-    if not provider:
-        raise HTTPException(status_code=404, detail="Provedor não encontrado")
-    
-    return {
-        "success": True,
-        "provider": {
-            "id": provider["id"],
-            "name": provider.get("name", ""),
-            "nome_fantasia": provider.get("nome_fantasia", ""),
-            "cnpj": provider.get("cnpj", ""),
-            "email": provider.get("email", ""),
-            "phone": provider.get("phone", ""),
-            "logo_url": provider.get("logo_url"),
-            "created_at": provider.get("created_at")
-        }
-    }
-
-
 @api_router.post("/validate/cnpj")
 async def validate_cnpj_endpoint(data: dict):
     """Endpoint para validar e consultar dados de CNPJ"""
@@ -4434,7 +4108,7 @@ async def validate_cep_endpoint(data: dict):
 
 @api_router.get("/")
 async def root():
-    return {"message": "ControleIsp API"}
+    return {"message": "Control-Isp API"}
 
 
 # Payment Routes
@@ -4460,7 +4134,7 @@ async def create_promotional_subscription(provider_id: str):
 
 
 @api_router.post("/payment/create")
-async def create_payment(request: PaymentRequest, promo_code: Optional[str] = None, current_user=Depends(get_current_provider)):
+async def create_payment(request: PaymentRequest, current_user=Depends(get_current_provider)):
     """Create PIX payment for provider subscription or promotional subscription"""
     
     provider_id = current_user["user_id"]
@@ -4495,26 +4169,16 @@ async def create_payment(request: PaymentRequest, promo_code: Optional[str] = No
                 }
             }
         
-        # Verificar se tem promoção Black Friday ativa
-        is_black_friday_active = promo_code and promo_code.lower() == "blackfriday"
-        amount = 99.00  # Preço promocional Black Friday
-        
-        if is_black_friday_active:
-            print(f"[BLACK-FRIDAY] Criando pagamento promocional para provider: {provider_id}")
-        
-        # Provedor antigo - criar PIX payment (com ou sem promoção)
-        payment_result = await create_pix_payment(provider_id, amount=amount)
+        # Provedor antigo - criar PIX payment normal
+        # Create PIX payment
+        payment_result = await create_pix_payment(provider_id)
         
         # Create subscription record
         subscription = Subscription(
             provider_id=provider_id,
             payment_id=str(payment_result["payment_id"]),
             pix_qr_code=payment_result["qr_code"],
-            pix_qr_base64=payment_result["qr_code_base64"],
-            amount=amount,
-            is_promotional=is_black_friday_active,
-            promotional_type="black_friday" if is_black_friday_active else None,
-            promotional_months_remaining=3 if is_black_friday_active else 0
+            pix_qr_base64=payment_result["qr_code_base64"]
         )
         
         subscription_dict = subscription.dict()
@@ -4527,8 +4191,7 @@ async def create_payment(request: PaymentRequest, promo_code: Optional[str] = No
         payment = Payment(
             provider_id=provider_id,
             subscription_id=subscription.id,
-            payment_id=str(payment_result["payment_id"]),
-            amount=amount
+            payment_id=str(payment_result["payment_id"])
         )
         
         payment_dict = payment.dict()
@@ -4536,26 +4199,14 @@ async def create_payment(request: PaymentRequest, promo_code: Optional[str] = No
         
         await db.payments.insert_one(payment_dict)
         
-        response = {
+        return {
             "success": True,
             "payment_id": payment_result["payment_id"],
             "qr_code": payment_result["qr_code"],
             "qr_code_base64": payment_result["qr_code_base64"],
-            "amount": amount,
+            "amount": 99.00,
             "subscription_id": subscription.id
         }
-        
-        if is_black_friday_active:
-            response["promo_details"] = {
-                "discount": "50%",
-                "original_price": 199.00,
-                "promotional_price": 99.00,
-                "savings": 100.00,
-                "promotional_months": 3,
-                "message": "🔥 BLACK FRIDAY: R$ 99,00/mês por 3 meses! Economia de R$ 300,00!"
-            }
-        
-        return response
         
     except HTTPException:
         raise
@@ -4880,7 +4531,7 @@ async def get_debug_info(current_user=Depends(get_current_provider)):
             "subscriptions_count": len(subscriptions),
             "recent_payments": payments[-3:] if payments else [],
             "recent_subscriptions": subscriptions[-3:] if subscriptions else [],
-            "webhook_url": "https://www.controleisp.com.br/api/payment/webhook"
+            "webhook_url": "https://www.control-isp.com.br/api/payment/webhook"
         }
         
     except Exception as e:
@@ -4900,26 +4551,6 @@ async def create_master_admin():
         admin_dict["created_at"] = admin_dict["created_at"].isoformat()
         await db.admins.insert_one(admin_dict)
         print("Master admin created: username=master, password=master123")
-    
-    # Start the scheduler for auto-sync
-    print("\n" + "="*80)
-    print("🚀 INICIANDO SCHEDULER DE SINCRONIZAÇÃO AUTOMÁTICA")
-    print("="*80)
-    print("⏰ O scheduler verificará a cada 1 minuto se há sincronizações agendadas")
-    print("📋 Integrações com auto-sync ativo serão sincronizadas no horário configurado")
-    print("="*80 + "\n")
-    
-    # Add job to run every minute
-    scheduler.add_job(
-        run_scheduled_auto_sync,
-        CronTrigger(minute='*'),  # Run every minute
-        id='auto_sync_job',
-        name='Auto Sync Integrations',
-        replace_existing=True
-    )
-    
-    scheduler.start()
-    print("✅ Scheduler iniciado com sucesso!\n")
 
 
 # Visitor tracking endpoints (public)
@@ -5459,7 +5090,6 @@ async def cleanup_clients_without_debts(
             print(f"=== CLEANUP: Buscando TODOS os títulos vencidos (não apenas >60 dias) para evitar remoção incorreta")
             
             headers = {
-                "ixcsoft": "listar",  # Header recomendado pelo IXC
                 "Content-Type": "application/json",
                 "Authorization": f"Basic {token_base64}"
             }
@@ -6064,8 +5694,6 @@ async def sync_ixc_data(integration: dict, provider_id: str) -> dict:
         
         # Buscar apenas títulos com status "A" (Aberto/Em vermelho)
         # e que estejam vencidos há MAIS DE 60 DIAS
-        # IMPORTANTE: grid_param filtra títulos ATIVOS (status='A') E LIBERADOS (liberado='S')
-        # Isso evita importar títulos pagos, cancelados ou não liberados pelo IXC
         financeiro_payload = {
             "qtype": "fn_areceber.data_vencimento",
             "query": data_limite,
@@ -6073,13 +5701,12 @@ async def sync_ixc_data(integration: dict, provider_id: str) -> dict:
             "page": "1",
             "rp": "5000",  # Aumentado para pegar mais títulos
             "sortname": "fn_areceber.data_vencimento",
-            "sortorder": "asc",  # Mais antigos primeiro
-            "grid_param": '[{"TB":"fn_areceber.status", "OP" : "=", "P" : "A"},{"TB":"fn_areceber.liberado", "OP" : "=", "P" : "S"}]'  # Apenas títulos ativos E liberados
+            "sortorder": "asc"  # Mais antigos primeiro
         }
         
-        print(f"=== Buscando títulos ATIVOS (status='A'), LIBERADOS (liberado='S') E VENCIDOS HÁ MAIS DE 60 DIAS (data_vencimento < {data_limite})")
+        print(f"=== Buscando títulos VENCIDOS HÁ MAIS DE 60 DIAS (data_vencimento < {data_limite})")
         
-        financeiro_response = requests.post(
+        financeiro_response = requests.get(
             financeiro_url,
             headers=headers,
             json=financeiro_payload,
@@ -6108,10 +5735,20 @@ async def sync_ixc_data(integration: dict, provider_id: str) -> dict:
                 "clients_failed": 0
             }
         
-        # PASSO 2: Agrupa títulos por cliente e pega APENAS OS 2 MAIS ANTIGOS
-        # A API já retorna apenas títulos com status='A' (Ativo) e liberado='S'
+        # PASSO 2: Agrupa títulos por cliente e pega APENAS OS 2 MAIS ANTIGOS EM ABERTO (status "A")
         cliente_debitos = {}
+        titulos_ignorados = 0
         for titulo in titulos:
+            # Verificar se o título está em aberto (não pago, não cancelado)
+            # Status "A" = Aberto (vermelho no IXC)
+            status = titulo.get('status', 'A')
+            
+            # Pular títulos que não estão em aberto
+            # Status comuns no IXC: "A" = Aberto, "P" = Pago, "C" = Cancelado
+            if status not in ['A', 'a']:
+                titulos_ignorados += 1
+                continue
+            
             cliente_id = titulo.get('cliente_id') or titulo.get('id_cliente')
             valor_aberto = float(titulo.get('valor_aberto', 0) or titulo.get('valor', 0))
             data_vencimento = titulo.get('data_vencimento', '')
@@ -6129,7 +5766,8 @@ async def sync_ixc_data(integration: dict, provider_id: str) -> dict:
                     'titulo': titulo
                 })
         
-        print(f"=== Títulos válidos (status='A', liberado='S' e valor > 0): {sum(len(c['titulos']) for c in cliente_debitos.values())}")
+        print(f"=== Títulos ignorados (status diferente de 'A'): {titulos_ignorados}")
+        print(f"=== Títulos válidos (status 'A' e valor > 0): {sum(len(c['titulos']) for c in cliente_debitos.values())}")
         
         # PASSO 2.5: Para cada cliente, pega APENAS os 2 títulos mais antigos
         print("=== Processando clientes com títulos vencidos e em aberto...")
@@ -6151,39 +5789,11 @@ async def sync_ixc_data(integration: dict, provider_id: str) -> dict:
             print(f"Cliente {cliente_id}: {len(dois_mais_antigos)} título(s) vencido(s) - R$ {cliente_debitos[cliente_id]['valor_total']:.2f}")
         
         if not cliente_debitos:
-            print("=== Nenhum cliente com débito encontrado. Executando reconciliação para remover todos os importados...")
-            # RECONCILIAÇÃO: Remover TODOS os clientes importados do IXC, pois não há mais ninguém com débito
-            clientes_importados = await db.clients.find({
-                "provider_id": provider_id,
-                "is_active": True,
-                "$or": [
-                    {"reason": {"$regex": "Importado do IXC", "$options": "i"}},
-                    {"inclusion_reason": {"$regex": "Importado do IXC", "$options": "i"}},
-                    {"observations": {"$regex": "Importado do IXC", "$options": "i"}}
-                ]
-            }).to_list(length=None)
-            
-            clients_removed = 0
-            for cliente in clientes_importados:
-                print(f"=== RECONCILIAÇÃO: Inativando {cliente.get('name')} (CPF: {cliente.get('cpf')}) - sem débitos no IXC")
-                await db.clients.update_one(
-                    {"id": cliente["id"]},
-                    {
-                        "$set": {
-                            "is_active": False,
-                            "deleted_at": datetime.now(timezone.utc).isoformat(),
-                            "updated_at": datetime.now(timezone.utc).isoformat()
-                        }
-                    }
-                )
-                clients_removed += 1
-            
             return {
                 "status": "success",
-                "message": f"Nenhum cliente com débito encontrado no IXC. {clients_removed} cliente(s) removido(s) automaticamente.",
+                "message": "Nenhum cliente com débito encontrado",
                 "clients_synced": 0,
-                "clients_failed": 0,
-                "clients_removed": clients_removed
+                "clients_failed": 0
             }
         
         # PASSO 3: Busca dados dos clientes com débito
@@ -6218,31 +5828,6 @@ async def sync_ixc_data(integration: dict, provider_id: str) -> dict:
                         cliente['valor_debito'] = debito_info['valor_total']
                         cliente['numero_titulos'] = debito_info['quantidade']
                         cliente['total_titulos_vencidos'] = debito_info['quantidade']
-                        
-                        # Adiciona informações dos boletos (até 2 títulos mais antigos)
-                        cliente['boletos'] = []
-                        for titulo in debito_info['titulos']:
-                            # Gera URL do boleto se não houver gateway_link
-                            url_boleto = titulo.get('gateway_link', '')
-                            if not url_boleto and titulo.get('id'):
-                                # Gera URL do boleto usando o ID do título
-                                # Formato padrão IXC: https://seuixc.com.br/central_assinante_web/boleto/{id_titulo}
-                                url_boleto = f"{api_url.replace('/webservice/v1', '')}/central_assinante_web/boleto/{titulo.get('id')}"
-                            
-                            boleto_info = {
-                                'valor': float(titulo.get('valor_aberto', 0) or titulo.get('valor', 0)),
-                                'vencimento': titulo.get('data_vencimento', ''),
-                                'linha_digitavel': titulo.get('linha_digitavel', ''),
-                                'url_boleto': url_boleto,
-                                'nosso_numero': titulo.get('nn_boleto', ''),
-                                'id_titulo': titulo.get('id', ''),
-                                'codigo_barras': titulo.get('codigo_barras', '')
-                            }
-                            # Só adiciona se tiver informações válidas
-                            if boleto_info['valor'] > 0:
-                                cliente['boletos'].append(boleto_info)
-                                print(f"DEBUG - Boleto adicionado: ID={boleto_info['id_titulo']}, Valor={boleto_info['valor']}, URL={boleto_info['url_boleto']}, Linha={boleto_info['linha_digitavel'][:20]}...")
-                        
                         clientes_com_debito.append(cliente)
             except Exception as e:
                 print(f"Erro ao buscar cliente {cliente_id}: {e}")
@@ -6495,7 +6080,7 @@ async def sync_radiusnet_data(integration: dict, provider_id: str) -> dict:
 
 async def import_clients_to_system(external_clients: list, provider_id: str, source_system: str) -> dict:
     """
-    Import clients from external ERP system into ControleIsp database
+    Import clients from external ERP system into Control-Isp database
     Handles data normalization and duplicate prevention
     """
     try:
@@ -6534,21 +6119,17 @@ async def import_clients_to_system(external_clients: list, provider_id: str, sou
                 
                 if existing_client:
                     # Update existing client
-                    update_data = {
-                        "debt_amount": normalized_client["debt_amount"],
-                        "reason": normalized_client.get("reason", existing_client.get("reason")),
-                        "risk_level": normalized_client.get("risk_level", existing_client.get("risk_level")),
-                        "phone": normalized_client.get("phone", existing_client.get("phone")),
-                        "updated_at": datetime.now(timezone.utc)
-                    }
-                    
-                    # Adiciona boletos se existirem
-                    if "boletos" in normalized_client and normalized_client["boletos"]:
-                        update_data["boletos"] = normalized_client["boletos"]
-                    
                     await db.clients.update_one(
                         {"id": existing_client["id"]},
-                        {"$set": update_data}
+                        {
+                            "$set": {
+                                "debt_amount": normalized_client["debt_amount"],
+                                "reason": normalized_client.get("reason", existing_client.get("reason")),
+                                "risk_level": normalized_client.get("risk_level", existing_client.get("risk_level")),
+                                "phone": normalized_client.get("phone", existing_client.get("phone")),
+                                "updated_at": datetime.now(timezone.utc)
+                            }
+                        }
                     )
                     clients_updated += 1
                 else:
@@ -6567,7 +6148,6 @@ async def import_clients_to_system(external_clients: list, provider_id: str, sou
                         "risk_level": normalized_client.get("risk_level", 3),
                         "inclusion_date": normalized_client.get("inclusion_date", datetime.now(timezone.utc).date().isoformat()),
                         "observations": f"Importado do {source_system.upper()} em {datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')}",
-                        "boletos": normalized_client.get("boletos", []),  # Adiciona boletos
                         "is_active": True,
                         "created_at": datetime.now(timezone.utc),
                         "updated_at": datetime.now(timezone.utc)
@@ -6605,7 +6185,7 @@ async def import_clients_to_system(external_clients: list, provider_id: str, sou
 
 def normalize_client_data(client_data: dict, source_system: str) -> dict:
     """
-    Normalize client data from different ERP systems into ControleIsp format
+    Normalize client data from different ERP systems into Control-Isp format
     """
     try:
         normalized = {}
@@ -6622,8 +6202,6 @@ def normalize_client_data(client_data: dict, source_system: str) -> dict:
             normalized["debt_amount"] = float(client_data.get("valor_debito", 0))
             num_titulos = client_data.get("numero_titulos", 0)
             normalized["reason"] = f"Importado do IXC - {num_titulos} título(s) vencido(s)" if num_titulos else "Importado do IXC"
-            # Preserva boletos
-            normalized["boletos"] = client_data.get("boletos", [])
             
         elif source_system == "mk-auth":
             # MK-Auth format normalization
@@ -6763,10 +6341,4 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    # Shutdown scheduler
-    print("\n🛑 Parando scheduler de sincronização automática...")
-    scheduler.shutdown()
-    print("✅ Scheduler parado com sucesso!\n")
-    
-    # Close MongoDB connection
     client.close()
