@@ -8621,22 +8621,6 @@ const ProviderDashboard = ({ onLogout }) => {
 
 // Main App Component
 function App() {
-  // Redirect automático para www.controleisp.com.br
-  useEffect(() => {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    const pathname = window.location.pathname;
-    const search = window.location.search;
-    const hash = window.location.hash;
-    
-    // Se acessar controleisp.com.br (sem www) e não estiver em localhost/preview
-    if (hostname === 'controleisp.com.br') {
-      // Redireciona para www.controleisp.com.br mantendo o caminho completo
-      const newUrl = `${protocol}//www.controleisp.com.br${pathname}${search}${hash}`;
-      window.location.replace(newUrl);
-    }
-  }, []);
-
   return (
     <Router>
       <Toaster 
