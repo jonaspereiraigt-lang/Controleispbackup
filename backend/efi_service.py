@@ -71,7 +71,7 @@ class EfiPaymentService:
                 }],
                 "metadata": {
                     "custom_id": provider_data.get("provider_id", ""),
-                    "notification_url": os.getenv("WEBHOOK_URL", "https://admin-isp.preview.emergentagent.com/api/webhook/efi")
+                    "notification_url": os.getenv("WEBHOOK_URL", "https://isp-admin-3.preview.emergentagent.com/api/webhook/efi")
                 }
             }
             
@@ -188,7 +188,7 @@ class EfiPaymentService:
                 }],
                 "metadata": {
                     "custom_id": provider_data.get("provider_id", ""),
-                    "notification_url": os.getenv("WEBHOOK_URL", "https://admin-isp.preview.emergentagent.com/api/webhook/efi")
+                    "notification_url": os.getenv("WEBHOOK_URL", "https://isp-admin-3.preview.emergentagent.com/api/webhook/efi")
                 }
             }
             

@@ -9,7 +9,7 @@ import json
 import time
 
 # Configuration
-BACKEND_URL = "https://admin-isp.preview.emergentagent.com/api"
+BACKEND_URL = "https://isp-admin-3.preview.emergentagent.com/api"
 ADMIN_USERNAME = "master"
 ADMIN_PASSWORD = "master123"
 
