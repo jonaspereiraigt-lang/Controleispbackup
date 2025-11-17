@@ -8809,6 +8809,92 @@ const ProviderDashboard = ({ onLogout }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Aceite de Termos - Primeiro Login */}
+      <Dialog open={showTermsModal} onOpenChange={(open) => !acceptingTerms && setShowTermsModal(open)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <FileText className="w-6 h-6 text-purple-600" />
+              Bem-vindo ao ControleIsp!
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-purple-900 mb-3">
+                🎉 Seu cadastro foi realizado com sucesso!
+              </h3>
+              <p className="text-gray-700 mb-4">
+                Para começar a usar o sistema, você precisa aceitar nossos termos de uso e concordar com as condições do plano de assinatura.
+              </p>
+              
+              <div className="bg-white rounded-lg p-4 border border-purple-200">
+                <h4 className="font-semibold text-purple-800 mb-2">📋 Detalhes do seu Plano:</h4>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span><strong>12 parcelas automáticas</strong> serão geradas ao aceitar os termos</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span><strong>3 primeiras parcelas promocionais:</strong> R$ 99,90/mês</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span><strong>Demais parcelas:</strong> R$ 199,90/mês</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">ℹ</span>
+                    <span><strong>Primeira parcela proporcional</strong> aos dias até o vencimento</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">📅</span>
+                    <span>Vencimento sempre no <strong>dia {providerInfo?.due_day || '10'}</strong> de cada mês</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-60 overflow-y-auto">
+              <h4 className="font-semibold mb-2">Termos de Uso - ControleIsp</h4>
+              <div className="text-sm text-gray-700 space-y-2">
+                <p>Ao aceitar estes termos, você concorda com:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>Utilizar o sistema apenas para fins legítimos de gestão de clientes</li>
+                  <li>Manter seus dados de acesso seguros e não compartilhar com terceiros</li>
+                  <li>Pagar as mensalidades nos vencimentos estabelecidos</li>
+                  <li>Respeitar a Lei Geral de Proteção de Dados (LGPD) no tratamento de informações</li>
+                  <li>Não utilizar o sistema para práticas abusivas ou ilegais de cobrança</li>
+                  <li>Aceitar que o não pagamento pode resultar em bloqueio temporário da conta</li>
+                </ul>
+                <p className="mt-3 font-medium">
+                  As parcelas serão geradas automaticamente e estarão disponíveis na seção "Meu Financeiro".
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button 
+              onClick={handleAcceptTerms} 
+              disabled={acceptingTerms}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
+            >
+              {acceptingTerms ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span>
+                  Gerando Parcelas...
+                </>
+              ) : (
+                <>
+                  ✅ Aceitar Termos e Gerar Minhas Parcelas
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Rodapé */}
       <footer className="text-gray-700 py-4 mt-8">
