@@ -4331,8 +4331,9 @@ const ProviderDashboard = ({ onLogout }) => {
         // Close modal
         setShowTermsModal(false);
         
-        // Update localStorage to reflect terms accepted
+        // Update localStorage to reflect terms accepted and financial generated
         localStorage.setItem("terms_accepted", "true");
+        localStorage.setItem("financial_generated", "true");
         
         // Show success with confetti effect
         toast.success('🎉 Bem-vindo ao ControleIsp!', { duration: 3000 });
