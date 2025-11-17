@@ -165,22 +165,6 @@ const AdminProviderDashboardSimple = () => {
     }
   };
 
-  const loadProviderPayments = async (providerId) => {
-    try {
-      setLoadingPayments(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/admin/providers/${providerId}/payments`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setPayments(response.data || []);
-    } catch (error) {
-      console.error('Erro ao carregar pagamentos:', error);
-      setPayments([]);
-    } finally {
-      setLoadingPayments(false);
-    }
-  };
-
   const handleConfirmPayment = async (paymentId) => {
     if (!window.confirm('Confirmar recebimento deste pagamento?')) return;
     
