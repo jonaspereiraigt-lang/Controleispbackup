@@ -6040,6 +6040,42 @@ const ProviderDashboard = ({ onLogout }) => {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Alerta de Bloqueio */}
+        {isBlocked && (
+          <div className="mb-6 bg-gradient-to-r from-red-600 to-red-700 border-2 border-red-800 rounded-lg shadow-xl p-6 animate-pulse">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="bg-white rounded-full p-3">
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  ⚠️ Conta Bloqueada - Pagamento Pendente
+                </h3>
+                <p className="text-red-100 text-lg mb-4">
+                  Você possui parcelas vencidas há mais de 3 dias. Para continuar usando o sistema, regularize seus pagamentos.
+                </p>
+                <Button 
+                  onClick={() => {
+                    setShowFinancialModal(true);
+                    loadMyPayments();
+                  }}
+                  className="bg-white text-red-600 hover:bg-red-50 font-bold text-lg px-6 py-3 shadow-lg"
+                >
+                  <DollarSign className="w-5 h-5 mr-2" />
+                  Ver Minhas Faturas e Pagar Agora
+                </Button>
+                <p className="text-red-100 text-sm mt-3">
+                  💡 <strong>Após o pagamento</strong>, seu acesso será liberado automaticamente em até 24 horas.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Header Section com Cards de Resumo */}
         <div className="mb-8">
           {/* Título e Descrição */}
