@@ -4216,6 +4216,11 @@ const ProviderDashboard = ({ onLogout }) => {
           logo_url: provider.logo_url
         });
         
+        // Check if this is first login and terms not accepted
+        if (!provider.terms_accepted && provider.due_day) {
+          setShowTermsModal(true);
+        }
+        
         // Set logo if exists
         if (provider.logo_url) {
           setProviderLogo(provider.logo_url);
