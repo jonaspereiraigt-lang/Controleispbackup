@@ -3977,6 +3977,9 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
       </Dialog>
 
       {/* Modal de Limpeza de Dados Órfãos removido */}
+      
+      {/* Modal de Gestão de Provedores */}
+      <ProviderManagementModal />
     </div>
   );
 };
