@@ -316,5 +316,12 @@ class EfiPaymentService:
                 "error": str(e)
             }
 
-# Create global instance
-efi_service = EfiPaymentService()
+# Create global instance (lazy initialization)
+efi_service = None
+
+def get_efi_service():
+    """Get or create Efi service instance"""
+    global efi_service
+    if efi_service is None:
+        efi_service = EfiPaymentService()
+    return efi_service
