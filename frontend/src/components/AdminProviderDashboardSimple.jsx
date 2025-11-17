@@ -609,7 +609,8 @@ const AdminProviderDashboardSimple = () => {
                                 )}
                               </div>
                             </div>
-                          ))}
+                          );
+                          })}
                         </div>
                       )}
                     </div>
