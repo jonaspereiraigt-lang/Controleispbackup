@@ -681,24 +681,43 @@ class BackendTester:
         self.cleanup()
         
         # Summary
-        print("=" * 60)
-        print("📊 TEST SUMMARY")
-        print("=" * 60)
+        print("=" * 80)
+        print("📊 FINANCIAL GENERATION ISSUE INVESTIGATION SUMMARY")
+        print("=" * 80)
         print(f"✅ Passed: {passed}")
         print(f"❌ Failed: {failed}")
         print(f"📈 Success Rate: {(passed/(passed+failed)*100):.1f}%")
         
-        # Critical issues
-        critical_issues = []
-        for result in self.results:
-            if not result["success"]:
-                if "credentials" in result["test"].lower() or "efi" in result["test"].lower():
-                    critical_issues.append(result)
+        # Analyze the specific issue
+        print("\n🔍 ISSUE ANALYSIS:")
         
-        if critical_issues:
-            print("\n🚨 CRITICAL ISSUES FOUND:")
-            for issue in critical_issues:
-                print(f"   • {issue['test']}: {issue['message']}")
+        # Check if the main endpoints are working
+        generate_working = any(r["success"] and "generate financial" in r["test"].lower() for r in self.results)
+        provider_payments_working = any(r["success"] and "provider my payments" in r["test"].lower() for r in self.results)
+        admin_payments_working = any(r["success"] and "admin provider payments" in r["test"].lower() for r in self.results)
+        
+        if generate_working:
+            print("   ✅ Admin can generate financial records")
+        else:
+            print("   ❌ Admin CANNOT generate financial records - ROOT CAUSE")
+        
+        if provider_payments_working:
+            print("   ✅ Provider payments endpoint is working")
+        else:
+            print("   ❌ Provider payments endpoint is BROKEN")
+        
+        if admin_payments_working:
+            print("   ✅ Admin payments endpoint is working")
+        else:
+            print("   ❌ Admin payments endpoint is BROKEN")
+        
+        # Root cause analysis
+        if generate_working and not (provider_payments_working and admin_payments_working):
+            print("\n🎯 LIKELY ROOT CAUSE: Payment generation works but query endpoints are broken")
+        elif not generate_working:
+            print("\n🎯 LIKELY ROOT CAUSE: Payment generation is not working properly")
+        elif generate_working and provider_payments_working and admin_payments_working:
+            print("\n🎯 POSSIBLE CAUSE: Data mapping issue (provider_id mismatch or wrong collection)")
         
         return passed, failed
 
