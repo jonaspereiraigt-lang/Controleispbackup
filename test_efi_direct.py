@@ -8,6 +8,12 @@ import sys
 import os
 sys.path.append('/app/backend')
 
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables
+load_dotenv(Path('/app/backend/.env'))
+
 from efi_service import get_efi_service
 import json
 
