@@ -1985,6 +1985,26 @@ async def generate_provider_financial(
         if not payment_result.get("success"):
             raise HTTPException(status_code=400, detail="Erro ao gerar pagamento")
         
+        # Save payment to database
+        payment_doc = {
+            "id": str(uuid.uuid4()),
+            "provider_id": provider_id,
+            "payment_id": str(payment_result.get("charge_id", "")),
+            "payment_method": payment_type,
+            "amount": amount,
+            "status": "pending",
+            "link": payment_result.get("link", ""),
+            "pdf": payment_result.get("pdf", ""),
+            "barcode": payment_result.get("barcode", ""),
+            "qr_code": payment_result.get("qr_code", ""),
+            "txid": payment_result.get("txid", ""),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "expires_at": payment_result.get("expire_at", (datetime.now(timezone.utc) + timedelta(days=3)).isoformat()),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.payments.insert_one(payment_doc)
+        
         # Mark provider as financial_generated = True
         await db.providers.update_one(
             {"id": provider_id},
