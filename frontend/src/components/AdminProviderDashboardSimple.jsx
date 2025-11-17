@@ -697,33 +697,6 @@ const AdminProviderDashboardSimple = () => {
                               >
                                 📄 Gerar Boleto
                               </button>
-                              <button
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  if (window.confirm(`Gerar PIX para ${provider.name}?\n\nValor: R$ ${provider.plan_value || 199.00}\n\nO provedor será liberado após a geração.`)) {
-                                    try {
-                                      setLoading(true);
-                                      const token = localStorage.getItem('token');
-                                      await axios.post(
-                                        `${API}/admin/providers/${provider.id}/generate-financial`,
-                                        { type: 'pix', amount: provider.plan_value || 199.00 },
-                                        { headers: { Authorization: `Bearer ${token}` } }
-                                      );
-                                      alert('✅ PIX gerado com sucesso!\n\nProvedor liberado para usar o sistema.');
-                                      loadProviders();
-                                    } catch (error) {
-                                      console.error('Erro:', error);
-                                      alert('❌ Erro ao gerar PIX: ' + (error.response?.data?.detail || error.message));
-                                    } finally {
-                                      setLoading(false);
-                                    }
-                                  }
-                                }}
-                                disabled={loading}
-                                className="px-3 py-1.5 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 disabled:opacity-50"
-                              >
-                                💳 Gerar PIX
-                              </button>
                             </div>
                           ) : (
                             <span className="text-xs text-green-600 font-medium">✓ Liberado</span>
