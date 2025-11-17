@@ -746,38 +746,14 @@ const AdminProviderDashboardSimple = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          {needsFinancial ? (
-                            <div className="flex flex-col gap-1">
-                              <button
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  if (window.confirm(`Gerar BOLETO para ${provider.name}?\n\nValor: R$ ${provider.plan_value || 199.00}\n\nO provedor será liberado após a geração.`)) {
-                                    try {
-                                      setLoading(true);
-                                      const token = localStorage.getItem('token');
-                                      await axios.post(
-                                        `${API}/admin/providers/${provider.id}/generate-financial`,
-                                        { type: 'boleto', amount: provider.plan_value || 199.00 },
-                                        { headers: { Authorization: `Bearer ${token}` } }
-                                      );
-                                      alert('✅ Boleto gerado com sucesso!\n\nProvedor liberado para usar o sistema.');
-                                      loadProviders();
-                                    } catch (error) {
-                                      console.error('Erro:', error);
-                                      alert('❌ Erro ao gerar boleto: ' + (error.response?.data?.detail || error.message));
-                                    } finally {
-                                      setLoading(false);
-                                    }
-                                  }
-                                }}
-                                disabled={loading}
-                                className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
-                              >
-                                📄 Gerar Boleto
-                              </button>
-                            </div>
+                          {!provider.financial_generated ? (
+                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 text-xs rounded-full font-medium border border-red-300">
+                              ⚠️ Sem Financeiro
+                            </span>
                           ) : (
-                            <span className="text-xs text-green-600 font-medium">✓ Liberado</span>
+                            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 text-xs rounded-full font-medium border border-green-300">
+                              ✓ Financeiro Gerado
+                            </span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-center">
