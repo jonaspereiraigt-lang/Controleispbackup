@@ -1652,28 +1652,50 @@ async def update_provider_by_admin(provider_id: str, provider_data: dict, curren
         if not provider:
             raise HTTPException(status_code=404, detail="Provedor não encontrado")
         
-        # Prepare update data
+        # Prepare update data - only include fields that are provided
         update_data = {
-            "name": provider_data.get("name"),
-            "email": provider_data.get("email"),
-            "cnpj": provider_data.get("cnpj", ""),
-            "cpf": provider_data.get("cpf", ""),
-            "phone": provider_data.get("phone", ""),
-            "address": provider_data.get("address", ""),
-            "number": provider_data.get("number", ""),
-            "complement": provider_data.get("complement", ""),
-            "neighborhood": provider_data.get("neighborhood", ""),
-            "city": provider_data.get("city", ""),
-            "state": provider_data.get("state", ""),
-            "cep": provider_data.get("cep", ""),
-            "username": provider_data.get("username", provider_data.get("email")),
-            "contract_number": provider_data.get("contract_number", ""),
-            "contract_date": provider_data.get("contract_date", ""),
-            "plan_type": provider_data.get("plan_type", "mensal"),
-            "plan_value": provider_data.get("plan_value", 199.00),
-            "payment_method": provider_data.get("payment_method", "boleto"),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
+        
+        # Only update fields that are explicitly provided
+        if "name" in provider_data:
+            update_data["name"] = provider_data["name"]
+        if "email" in provider_data:
+            update_data["email"] = provider_data["email"]
+        if "cnpj" in provider_data:
+            update_data["cnpj"] = provider_data["cnpj"]
+        if "cpf" in provider_data:
+            update_data["cpf"] = provider_data["cpf"]
+        if "phone" in provider_data:
+            update_data["phone"] = provider_data["phone"]
+        if "address" in provider_data:
+            update_data["address"] = provider_data["address"]
+        if "number" in provider_data:
+            update_data["number"] = provider_data["number"]
+        if "complement" in provider_data:
+            update_data["complement"] = provider_data["complement"]
+        if "neighborhood" in provider_data:
+            update_data["neighborhood"] = provider_data["neighborhood"]
+        if "city" in provider_data:
+            update_data["city"] = provider_data["city"]
+        if "state" in provider_data:
+            update_data["state"] = provider_data["state"]
+        if "cep" in provider_data:
+            update_data["cep"] = provider_data["cep"]
+        if "username" in provider_data:
+            update_data["username"] = provider_data["username"]
+        if "contract_number" in provider_data:
+            update_data["contract_number"] = provider_data["contract_number"]
+        if "contract_date" in provider_data:
+            update_data["contract_date"] = provider_data["contract_date"]
+        if "plan_type" in provider_data:
+            update_data["plan_type"] = provider_data["plan_type"]
+        if "plan_value" in provider_data:
+            update_data["plan_value"] = provider_data["plan_value"]
+        if "payment_method" in provider_data:
+            update_data["payment_method"] = provider_data["payment_method"]
+        if "installments" in provider_data:
+            update_data["installments"] = provider_data["installments"]
         
         # Update password if provided
         if provider_data.get("password"):
