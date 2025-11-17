@@ -4160,6 +4160,31 @@ const ProviderDashboard = ({ onLogout }) => {
     };
   }, []);
 
+  // Check localStorage for first login on mount
+  useEffect(() => {
+    const checkFirstLogin = () => {
+      const termsAccepted = localStorage.getItem("terms_accepted");
+      const dueDay = localStorage.getItem("due_day");
+      
+      // Show modal if terms not accepted and has due_day
+      if (termsAccepted === "false" && dueDay && dueDay !== "null") {
+        console.log("🔍 Detectado primeiro login via localStorage!");
+        console.log("   terms_accepted:", termsAccepted);
+        console.log("   due_day:", dueDay);
+        setShowTermsModal(true);
+        
+        // Store due_day in providerInfo for display
+        setProviderInfo(prev => ({
+          ...prev,
+          due_day: parseInt(dueDay)
+        }));
+      }
+    };
+    
+    // Small delay to ensure other useEffects have run
+    setTimeout(checkFirstLogin, 100);
+  }, []);
+
   // Auto-check payment status - DESABILITADO (pagamento via Efi Bank)
   // useEffect(() => {
   //   let interval;
