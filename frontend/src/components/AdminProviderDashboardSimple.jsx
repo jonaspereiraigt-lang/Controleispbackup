@@ -45,6 +45,22 @@ const AdminProviderDashboardSimple = () => {
     }
   };
 
+  const loadProviderPayments = async (providerId) => {
+    try {
+      setLoadingPayments(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/admin/providers/${providerId}/payments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSelectedProviderPayments(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar pagamentos:', error);
+      setSelectedProviderPayments([]);
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
