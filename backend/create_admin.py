@@ -3,13 +3,16 @@ Script para criar um usuário admin no banco de dados
 """
 import asyncio
 import os
+import hashlib
 from motor.motor_asyncio import AsyncIOMotorClient
-from passlib.context import CryptContext
 import uuid
 
 # Configuração
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017/controleisp")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    """Hash password using SHA256"""
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 async def create_admin():
     # Conectar ao MongoDB
