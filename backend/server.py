@@ -123,12 +123,13 @@ EMAIL_FROM = os.environ.get('EMAIL_FROM')
 EMAIL_FROM_NAME = os.environ.get('EMAIL_FROM_NAME', 'ControleIsp')
 
 # Mercado Pago Configuration
-MERCADOPAGO_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
-MERCADOPAGO_PUBLIC_KEY = os.environ.get('MERCADOPAGO_PUBLIC_KEY')
-MERCADOPAGO_WEBHOOK_SECRET = os.environ.get('MERCADOPAGO_WEBHOOK_SECRET')
+# MERCADO PAGO INTEGRATION DISABLED - Will be replaced with Efi Bank
+# MERCADOPAGO_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
+# MERCADOPAGO_PUBLIC_KEY = os.environ.get('MERCADOPAGO_PUBLIC_KEY')
+# MERCADOPAGO_WEBHOOK_SECRET = os.environ.get('MERCADOPAGO_WEBHOOK_SECRET')
 
 # Initialize Mercado Pago SDK
-mp_sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
+# mp_sdk = mercadopago.SDK(MERCADOPAGO_ACCESS_TOKEN)
 
 security = HTTPBearer()
 
