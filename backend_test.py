@@ -170,37 +170,20 @@ class BackendTester:
             return False
     
     def test_provider_login(self):
-        """Test provider login (should work)"""
+        """Test provider login"""
         print("🔑 Testing Provider Login...")
         
-        if not self.test_provider_id:
-            self.log_result("Provider Login", False, "No test provider ID available")
+        if not self.test_provider_email:
+            self.log_result("Provider Login", False, "No test provider email available")
             return False
         
         try:
-            # Get provider details first
-            response = self.session.get(f"{BACKEND_URL}/admin/providers", timeout=30)
-            if response.status_code != 200:
-                self.log_result("Provider Login", False, "Failed to get provider details")
-                return False
-            
-            providers = response.json()
-            test_provider = None
-            for provider in providers:
-                if provider.get("id") == self.test_provider_id:
-                    test_provider = provider
-                    break
-            
-            if not test_provider:
-                self.log_result("Provider Login", False, "Test provider not found")
-                return False
-            
             # Try to login as provider
-            login_response = self.session.post(
+            login_response = requests.post(
                 f"{BACKEND_URL}/auth/provider/login",
                 json={
-                    "username": test_provider.get("email"),
-                    "password": "senha123"
+                    "username": self.test_provider_email,
+                    "password": self.test_provider_password
                 },
                 timeout=30
             )
