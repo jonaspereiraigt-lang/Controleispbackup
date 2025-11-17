@@ -2917,6 +2917,25 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
     toast.success("WhatsApp aberto com mensagem de cobrança!");
   };
 
+  // Renderização condicional do dashboard de provedores
+  if (showProviderManagement) {
+    return (
+      <div>
+        <div className="bg-gray-700 px-6 py-4 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-white">Gestão de Provedores</h1>
+          <Button
+            onClick={() => setShowProviderManagement(false)}
+            variant="outline"
+            className="bg-white"
+          >
+            ← Voltar ao Dashboard
+          </Button>
+        </div>
+        <AdminProviderDashboard />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b border-red-100">
