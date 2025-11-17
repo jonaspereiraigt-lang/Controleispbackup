@@ -4215,6 +4215,24 @@ const ProviderDashboard = ({ onLogout }) => {
     }
   };
 
+  // Carregar pagamentos do provedor
+  const loadMyPayments = async () => {
+    try {
+      setLoadingPayments(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API}/provider/my-payments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMyPayments(response.data.payments || []);
+      setIsBlocked(response.data.is_blocked || false);
+    } catch (error) {
+      console.error("Erro ao carregar pagamentos:", error);
+      setMyPayments([]);
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
   const handleCreateClient = async (e) => {
     e.preventDefault();
     
