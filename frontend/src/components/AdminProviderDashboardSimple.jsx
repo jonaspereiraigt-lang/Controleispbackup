@@ -430,13 +430,41 @@ const AdminProviderDashboardSimple = () => {
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold text-gray-900 text-lg">Histórico de Pagamentos</h3>
-                        <button
-                          onClick={() => loadProviderPayments(selectedProvider.id)}
-                          disabled={loadingPayments}
-                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                        >
-                          {loadingPayments ? 'Carregando...' : 'Atualizar'}
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={async () => {
+                              if (window.confirm(`Gerar Boleto para ${selectedProvider.name}?\n\nValor: R$ ${selectedProvider.plan_value || 199.00}`)) {
+                                try {
+                                  setLoading(true);
+                                  const token = localStorage.getItem('token');
+                                  await axios.post(
+                                    `${API}/admin/providers/${selectedProvider.id}/generate-financial`,
+                                    { type: 'boleto', amount: selectedProvider.plan_value || 199.00 },
+                                    { headers: { Authorization: `Bearer ${token}` } }
+                                  );
+                                  alert('✅ Boleto gerado com sucesso!');
+                                  loadProviderPayments(selectedProvider.id);
+                                } catch (error) {
+                                  console.error('Erro:', error);
+                                  alert('❌ Erro ao gerar boleto: ' + (error.response?.data?.detail || error.message));
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }
+                            }}
+                            disabled={loading}
+                            className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                          >
+                            📄 Gerar Boleto
+                          </button>
+                          <button
+                            onClick={() => loadProviderPayments(selectedProvider.id)}
+                            disabled={loadingPayments}
+                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            {loadingPayments ? 'Carregando...' : '🔄 Atualizar'}
+                          </button>
+                        </div>
                       </div>
 
                       {/* Filtros de Status */}
