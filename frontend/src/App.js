@@ -2161,7 +2161,6 @@ const AdminDashboard = ({ onLogout }) => {
     loadProviders();
     loadNotifications();
     loadDatabaseStats();
-    loadSystemSettings();
     loadRevenueStats();
 
     // Atualização automática das estatísticas a cada 30 segundos
