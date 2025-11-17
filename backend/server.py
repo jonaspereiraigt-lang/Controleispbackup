@@ -868,6 +868,10 @@ class ProviderStats(BaseModel):
     subscription_expires_at: Optional[datetime] = None
     days_remaining: Optional[int] = None
     is_promotional: bool = False
+    # Financial configuration
+    plan_value: Optional[float] = None
+    installments: Optional[int] = None
+    financial_generated: bool = False
 
 
 class ClientSummary(BaseModel):
