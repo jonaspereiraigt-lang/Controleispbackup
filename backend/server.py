@@ -4508,9 +4508,153 @@ async def create_promotional_subscription(provider_id: str):
     return subscription
 
 
+# =============================================================================
+# EFI BANK PAYMENT ROUTES
+# =============================================================================
+
+@api_router.post("/payment/efi/boleto")
+async def create_efi_boleto(request: PaymentRequest, current_user=Depends(get_current_provider)):
+    """Create boleto payment with Efi Bank for provider subscription"""
+    
+    provider_id = current_user["user_id"]
+    
+    try:
+        # Check if provider already has active subscription
+        has_active = await check_subscription_status(provider_id)
+        if has_active:
+            raise HTTPException(status_code=400, detail="Você já possui uma assinatura ativa")
+        
+        # Determine amount (check for promotions)
+        amount = 199.00  # Default monthly price
+        
+        # Create boleto payment
+        payment_result = await create_efi_boleto_payment(provider_id, amount)
+        
+        if not payment_result.get("success"):
+            raise HTTPException(status_code=400, detail="Erro ao criar boleto")
+        
+        # Create subscription record
+        subscription = Subscription(
+            id=str(uuid.uuid4()),
+            provider_id=provider_id,
+            payment_status="pending",
+            amount=amount,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=30)
+        )
+        
+        subscription_dict = subscription.dict()
+        subscription_dict["created_at"] = subscription_dict["created_at"].isoformat()
+        subscription_dict["expires_at"] = subscription_dict["expires_at"].isoformat()
+        
+        await db.subscriptions.insert_one(subscription_dict)
+        
+        # Create payment record
+        payment = Payment(
+            provider_id=provider_id,
+            subscription_id=subscription.id,
+            payment_id=str(payment_result["charge_id"]),
+            amount=amount,
+            status="pending",
+            payment_method="boleto"
+        )
+        
+        payment_dict = payment.dict()
+        payment_dict["created_at"] = payment_dict["created_at"].isoformat()
+        
+        await db.payments.insert_one(payment_dict)
+        
+        return {
+            "success": True,
+            "payment_type": "boleto",
+            "charge_id": payment_result["charge_id"],
+            "barcode": payment_result["barcode"],
+            "link": payment_result["link"],
+            "pdf": payment_result["pdf"],
+            "amount": amount,
+            "expire_at": payment_result["expire_at"],
+            "subscription_id": subscription.id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating boleto payment: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao criar boleto")
+
+
+@api_router.post("/payment/efi/pix")
+async def create_efi_pix(request: PaymentRequest, current_user=Depends(get_current_provider)):
+    """Create PIX payment with Efi Bank for provider subscription"""
+    
+    provider_id = current_user["user_id"]
+    
+    try:
+        # Check if provider already has active subscription
+        has_active = await check_subscription_status(provider_id)
+        if has_active:
+            raise HTTPException(status_code=400, detail="Você já possui uma assinatura ativa")
+        
+        # Determine amount
+        amount = 199.00  # Default monthly price
+        
+        # Create PIX payment
+        payment_result = await create_efi_pix_payment(provider_id, amount)
+        
+        if not payment_result.get("success"):
+            raise HTTPException(status_code=400, detail="Erro ao criar PIX")
+        
+        # Create subscription record
+        subscription = Subscription(
+            id=str(uuid.uuid4()),
+            provider_id=provider_id,
+            payment_status="pending",
+            amount=amount,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=30)
+        )
+        
+        subscription_dict = subscription.dict()
+        subscription_dict["created_at"] = subscription_dict["created_at"].isoformat()
+        subscription_dict["expires_at"] = subscription_dict["expires_at"].isoformat()
+        
+        await db.subscriptions.insert_one(subscription_dict)
+        
+        # Create payment record
+        payment = Payment(
+            provider_id=provider_id,
+            subscription_id=subscription.id,
+            payment_id=str(payment_result["charge_id"]),
+            amount=amount,
+            status="waiting",
+            payment_method="pix"
+        )
+        
+        payment_dict = payment.dict()
+        payment_dict["created_at"] = payment_dict["created_at"].isoformat()
+        
+        await db.payments.insert_one(payment_dict)
+        
+        return {
+            "success": True,
+            "payment_type": "pix",
+            "charge_id": payment_result["charge_id"],
+            "qr_code": payment_result["qr_code"],
+            "qr_code_base64": payment_result["qr_code_base64"],
+            "amount": amount,
+            "expires_at": payment_result["expires_at"],
+            "subscription_id": subscription.id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating PIX payment: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao criar PIX")
+
+
+# LEGACY MERCADO PAGO ROUTE - KEPT FOR COMPATIBILITY (DISABLED)
 @api_router.post("/payment/create")
 async def create_payment(request: PaymentRequest, promo_code: Optional[str] = None, current_user=Depends(get_current_provider)):
-    """Create PIX payment for provider subscription or promotional subscription"""
+    """DEPRECATED - Use /payment/efi/boleto or /payment/efi/pix instead"""
     
     provider_id = current_user["user_id"]
     
