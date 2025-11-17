@@ -1193,72 +1193,17 @@ async def reset_password(request: ResetPasswordRequest):
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
 
 
-# Payment Functions
+# MERCADO PAGO PAYMENT FUNCTIONS - DISABLED
+# These will be replaced with Efi Bank integration
+"""
 async def create_pix_payment(provider_id: str, amount: float = 99.00):
-    """Create PIX payment with Mercado Pago"""
-    try:
-        # Get provider info
-        provider = await db.providers.find_one({"id": provider_id})
-        if not provider:
-            raise HTTPException(status_code=404, detail="Provedor não encontrado")
-
-        # Create payment request
-        payment_data = {
-            "transaction_amount": amount,
-            "payment_method_id": "pix",
-            "payer": {
-                "email": provider["email"],
-                "first_name": provider["name"][:50],  # Limit to 50 chars
-                "identification": {
-                    "type": "CNPJ",
-                    "number": re.sub(r'[^0-9]', '', provider["cnpj"])
-                }
-            },
-            "description": f"ControleIsp - Mensalidade do Sistema - {provider['name'][:50]}",
-            "external_reference": f"control_isp_{provider_id}_{int(datetime.now().timestamp())}",
-            "notification_url": "https://www.controleisp.com.br/api/payment/webhook"
-        }
-
-        # Create payment in Mercado Pago
-        payment_response = mp_sdk.payment().create(payment_data)
-        
-        if payment_response["status"] == 201:
-            payment = payment_response["response"]
-            
-            # Generate QR Code
-            qr_data = payment.get("point_of_interaction", {}).get("transaction_data", {}).get("qr_code")
-            qr_base64 = None
-            
-            if qr_data:
-                qr = qrcode.QRCode(version=1, box_size=10, border=5)
-                qr.add_data(qr_data)
-                qr.make(fit=True)
-                
-                img = qr.make_image(fill_color="black", back_color="white")
-                buffer = BytesIO()
-                img.save(buffer, format='PNG')
-                qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-
-            return {
-                "payment_id": payment["id"],
-                "qr_code": qr_data,
-                "qr_code_base64": qr_base64,
-                "status": payment["status"],
-                "amount": payment["transaction_amount"]
-            }
-        else:
-            raise HTTPException(status_code=400, detail="Erro ao criar pagamento PIX")
-            
-    except Exception as e:
-        print(f"Error creating PIX payment: {e}")
-        raise HTTPException(status_code=500, detail="Erro ao criar pagamento PIX")
-
+    # Create PIX payment with Mercado Pago - DISABLED
+    pass
 
 async def verify_webhook_signature(payload: str, signature: str) -> bool:
-    """Verify Mercado Pago webhook signature"""
-    # Skip signature verification for now - debugging
-    print("[WEBHOOK] Signature verification skipped for debugging")
-    return True
+    # Verify Mercado Pago webhook signature - DISABLED
+    return False
+"""
 
 
 async def is_payment_required():
