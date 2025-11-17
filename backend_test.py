@@ -123,11 +123,37 @@ class BackendTester:
             return False
     
     def create_test_provider(self):
-        """Create a test provider for boleto testing"""
-        print("👤 Creating Test Provider...")
+        """Create or use existing test provider for boleto testing"""
+        print("👤 Creating/Finding Test Provider...")
         
         try:
-            # Generate unique email to avoid conflicts
+            # First, try to find existing providers
+            response = self.session.get(f"{BACKEND_URL}/admin/providers", timeout=30)
+            if response.status_code == 200:
+                providers = response.json()
+                if providers:
+                    # Use the first provider for testing
+                    test_provider = providers[0]
+                    self.test_provider_id = test_provider.get("id")
+                    self.test_provider_email = test_provider.get("email")
+                    # Reset password to known value for testing
+                    self.test_provider_password = "senha123"
+                    
+                    # Update provider password to known value
+                    update_response = self.session.put(
+                        f"{BACKEND_URL}/admin/providers/{self.test_provider_id}",
+                        json={
+                            "name": test_provider.get("name"),
+                            "email": test_provider.get("email"),
+                            "password": self.test_provider_password  # Set known password
+                        },
+                        timeout=30
+                    )
+                    
+                    self.log_result("Create Provider", True, f"Using existing provider: {self.test_provider_id}")
+                    return True
+            
+            # If no existing providers, create a new one
             timestamp = int(time.time())
             unique_email = f"provedor.boleto.test.{timestamp}@example.com"
             
