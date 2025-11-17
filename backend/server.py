@@ -1259,7 +1259,7 @@ async def create_efi_pix_payment(provider_id: str, amount: float = 199.00):
         }
         
         # Create PIX via Efi Bank
-        result = efi_service.create_pix_charge(provider_data, amount, expiration_minutes=30)
+        result = get_efi_service().create_pix_charge(provider_data, amount, expiration_minutes=30)
         
         if result.get("success"):
             return {
