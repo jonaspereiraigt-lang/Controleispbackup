@@ -1218,8 +1218,8 @@ async def create_efi_boleto_payment(provider_id: str, amount: float = 199.00, du
         # Prepare provider data
         provider_data = {
             "provider_id": provider_id,
-            "name": provider["name"],
-            "email": provider["email"],
+            "name": provider.get("name", "Nome do Provedor"),
+            "email": provider.get("email", "email@provedor.com"),
             "cpf": provider.get("cpf", ""),
             "phone": provider.get("phone", "")
         }
