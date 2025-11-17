@@ -1862,6 +1862,107 @@ async def delete_provider_admin(provider_id: str, current_user=Depends(get_curre
     return {"message": "Provedor excluído com sucesso", "provider_id": provider_id}
 
 
+@api_router.get("/admin/providers/{provider_id}/payments")
+async def get_provider_payments(provider_id: str, current_user=Depends(get_current_admin)):
+    """Get all payments for a specific provider (admin only)"""
+    try:
+        # Get payments from database
+        payments = await db.payments.find({"provider_id": provider_id}).sort("created_at", -1).to_list(100)
+        
+        # Get subscriptions to enrich data
+        for payment in payments:
+            if payment.get("subscription_id"):
+                subscription = await db.subscriptions.find_one({"id": payment["subscription_id"]})
+                if subscription:
+                    payment["subscription_status"] = subscription.get("payment_status")
+        
+        return payments
+        
+    except Exception as e:
+        print(f"Error getting provider payments: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar pagamentos")
+
+
+@api_router.post("/admin/payments/{payment_id}/confirm")
+async def confirm_payment_admin(payment_id: str, current_user=Depends(get_current_admin)):
+    """Manually confirm a payment as received (admin only)"""
+    try:
+        # Find payment
+        payment = await db.payments.find_one({"id": payment_id})
+        if not payment:
+            raise HTTPException(status_code=404, detail="Pagamento não encontrado")
+        
+        # Update payment status
+        await db.payments.update_one(
+            {"id": payment_id},
+            {"$set": {
+                "status": "paid",
+                "paid_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Activate subscription if exists
+        if payment.get("subscription_id"):
+            await db.subscriptions.update_one(
+                {"id": payment["subscription_id"]},
+                {"$set": {
+                    "payment_status": "active",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+        
+        return {"success": True, "message": "Pagamento confirmado com sucesso"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error confirming payment: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao confirmar pagamento")
+
+
+@api_router.post("/admin/payments/{payment_id}/cancel")
+async def cancel_payment_admin(payment_id: str, current_user=Depends(get_current_admin)):
+    """Cancel a payment (admin only)"""
+    try:
+        # Find payment
+        payment = await db.payments.find_one({"id": payment_id})
+        if not payment:
+            raise HTTPException(status_code=404, detail="Pagamento não encontrado")
+        
+        # Cancel in Efi Bank if has charge_id
+        if payment.get("payment_id"):
+            try:
+                result = get_efi_service().cancel_charge(int(payment["payment_id"]))
+                if not result.get("success"):
+                    print(f"Warning: Failed to cancel charge in Efi Bank: {result.get('error')}")
+            except Exception as e:
+                print(f"Warning: Could not cancel charge in Efi Bank: {e}")
+        
+        # Update payment status
+        await db.payments.update_one(
+            {"id": payment_id},
+            {"$set": {"status": "cancelled"}}
+        )
+        
+        # Cancel subscription if exists
+        if payment.get("subscription_id"):
+            await db.subscriptions.update_one(
+                {"id": payment["subscription_id"]},
+                {"$set": {
+                    "payment_status": "cancelled",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+        
+        return {"success": True, "message": "Pagamento cancelado com sucesso"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error cancelling payment: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao cancelar pagamento")
+
+
 # Duplicate function removed - using the new renew_provider_subscription function above
 
 @api_router.post("/admin/renew-all-subscriptions")
