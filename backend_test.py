@@ -84,6 +84,30 @@ class BackendTester:
                         self.test_provider_id = provider.get("id")
                         self.log_result("Create Provider", True, f"Using existing provider: {self.test_provider_id}")
                         return True
+                        
+                # If all providers have financial_generated=true, reset one for testing
+                if providers:
+                    test_provider = providers[0]
+                    provider_id = test_provider.get("id")
+                    # Reset financial_generated to false for testing
+                    update_response = self.session.put(
+                        f"{BACKEND_URL}/admin/providers/{provider_id}",
+                        json={
+                            "name": test_provider.get("name"),
+                            "nome_fantasia": test_provider.get("nome_fantasia", test_provider.get("name")),
+                            "email": test_provider.get("email"),
+                            "cnpj": test_provider.get("cnpj", ""),
+                            "phone": test_provider.get("phone", ""),
+                            "address": test_provider.get("address", ""),
+                            "bairro": test_provider.get("bairro", "Centro"),
+                            "financial_generated": False  # Reset for testing
+                        },
+                        timeout=30
+                    )
+                    if update_response.status_code == 200:
+                        self.test_provider_id = provider_id
+                        self.log_result("Create Provider", True, f"Reset existing provider for testing: {provider_id}")
+                        return True
         except Exception as e:
             print(f"Warning: Could not check existing providers: {e}")
         
