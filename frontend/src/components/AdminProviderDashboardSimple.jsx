@@ -5,6 +5,7 @@ import { Plus, Edit, Trash2, Search, Save, X, User, MapPin, Phone, FileText, Key
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
+// Dashboard de Gestão de PROVEDORES - Updated 2025
 const AdminProviderDashboardSimple = () => {
   const [providers, setProviders] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState(null);
