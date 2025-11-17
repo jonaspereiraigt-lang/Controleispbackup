@@ -28,10 +28,12 @@ class BackendTester:
         self.admin_token = None
         self.provider_token = None
         self.test_provider_id = None
+        self.test_provider_email = None
+        self.test_provider_password = "senha123"
         self.results = []
         self.mongo_client = None
         self.db = None
-        self.generated_payment_id = None
+        self.generated_payments = []  # Store all generated payments
         
     def log_result(self, test_name, success, message, details=None):
         """Log test result"""
