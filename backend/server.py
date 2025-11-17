@@ -5112,8 +5112,8 @@ async def get_my_payments(current_user=Depends(get_current_provider)):
                     if expiry_date.tzinfo is None:
                         expiry_date = expiry_date.replace(tzinfo=timezone.utc)
                     
-                    # Block if 1+ days overdue
-                    if (today - expiry_date).days >= 1:
+                    # Block if 3+ days overdue (3 days after due date)
+                    if (today - expiry_date).days >= 3:
                         is_blocked = True
                         break
                 except Exception as e:
