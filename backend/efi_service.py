@@ -77,7 +77,7 @@ class EfiPaymentService:
                 },
                 "metadata": {
                     "custom_id": provider_data.get("provider_id", ""),
-                    "notification_url": os.getenv("WEBHOOK_URL", "")
+                    "notification_url": os.getenv("WEBHOOK_URL", "https://admin-isp.preview.emergentagent.com/api/webhook/efi")
                 },
                 "payment": {
                     "banking_billet": {
