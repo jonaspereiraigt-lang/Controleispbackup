@@ -5702,29 +5702,10 @@ const ProviderDashboard = ({ onLogout }) => {
     return;
   };
 
+  // Função de criação de pagamento antigo - DESABILITADA
   const createPayment = async () => {
-    try {
-      setPaymentLoading(true);
-      const token = localStorage.getItem("token");
-      const response = await axios.post(`${API}/payment/create`, 
-        { provider_id: "current" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      if (response.data.success) {
-        setPaymentStatus({
-          ...paymentStatus,
-          qr_code: response.data.qr_code,
-          qr_code_base64: response.data.qr_code_base64,
-          show_pix: true
-        });
-        toast.success("PIX gerado com sucesso! Escaneie o QR Code para pagar.");
-      }
-    } catch (error) {
-      toast.error("Erro ao gerar PIX: " + (error.response?.data?.detail || "Erro desconhecido"));
-    } finally {
-      setPaymentLoading(false);
-    }
+    // Desabilitado - pagamento agora é via Efi Bank
+    return;
   };
 
   const handlePaymentSuccess = () => {
