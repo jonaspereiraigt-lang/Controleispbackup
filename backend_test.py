@@ -697,14 +697,14 @@ class BackendTester:
                 provider_payments = list(payments_collection.find({"provider_id": self.test_provider_id}))
                 print(f"   Payments for test provider ({self.test_provider_id[:8]}...): {len(provider_payments)}")
                 
-                if self.generated_payment_id:
-                    matching_payments = list(payments_collection.find({
-                        "$or": [
-                            {"payment_id": self.generated_payment_id},
-                            {"charge_id": self.generated_payment_id}
-                        ]
-                    }))
-                    print(f"   Payments matching generated ID ({self.generated_payment_id}): {len(matching_payments)}")
+                # Check for recent payments (last 5 minutes)
+                from datetime import datetime, timedelta
+                recent_time = datetime.now() - timedelta(minutes=5)
+                recent_payments = list(payments_collection.find({
+                    "provider_id": self.test_provider_id,
+                    "created_at": {"$gte": recent_time.isoformat()}
+                }))
+                print(f"   Recent payments for test provider: {len(recent_payments)}")
             
             return True
                 
