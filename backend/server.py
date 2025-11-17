@@ -657,6 +657,9 @@ async def get_current_provider(current_user=Depends(get_current_user)):
     if not provider.get("is_active", True):
         raise HTTPException(status_code=403, detail="Conta inativa")
     
+    # Add financial_generated status to current_user
+    current_user["financial_generated"] = provider.get("financial_generated", False)
+    
     return current_user
 
 
