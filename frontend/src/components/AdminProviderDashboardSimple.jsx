@@ -128,6 +128,75 @@ const AdminProviderDashboardSimple = () => {
     }
   };
 
+  const loadProviderPayments = async (providerId) => {
+    try {
+      setLoadingPayments(true);
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.get(`${API}/admin/providers/${providerId}/payments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPayments(response.data || []);
+    } catch (error) {
+      console.error('Erro ao carregar pagamentos:', error);
+      setPayments([]);
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
+  const handleConfirmPayment = async (paymentId) => {
+    if (!window.confirm('Confirmar recebimento deste pagamento?')) return;
+    
+    try {
+      const token = localStorage.getItem('admin_token');
+      await axios.post(`${API}/admin/payments/${paymentId}/confirm`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Pagamento confirmado com sucesso!');
+      if (selectedProvider) loadProviderPayments(selectedProvider.id);
+    } catch (error) {
+      console.error('Erro ao confirmar pagamento:', error);
+      alert('Erro ao confirmar pagamento');
+    }
+  };
+
+  const handleCancelPayment = async (paymentId) => {
+    if (!window.confirm('Tem certeza que deseja cancelar este pagamento?')) return;
+    
+    try {
+      const token = localStorage.getItem('admin_token');
+      await axios.post(`${API}/admin/payments/${paymentId}/cancel`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Pagamento cancelado com sucesso!');
+      if (selectedProvider) loadProviderPayments(selectedProvider.id);
+    } catch (error) {
+      console.error('Erro ao cancelar pagamento:', error);
+      alert('Erro ao cancelar pagamento');
+    }
+  };
+
+  const handlePrintBoleto = (payment) => {
+    if (payment.pdf) {
+      window.open(payment.pdf, '_blank');
+    } else if (payment.link) {
+      window.open(payment.link, '_blank');
+    } else {
+      alert('Link do boleto não disponível');
+    }
+  };
+
+  const handleCopyPix = (pixCode) => {
+    navigator.clipboard.writeText(pixCode);
+    alert('Código PIX copiado para área de transferência!');
+  };
+
+  useEffect(() => {
+    if (selectedProvider && activeTab === 'financeiro') {
+      loadProviderPayments(selectedProvider.id);
+    }
+  }, [selectedProvider, activeTab]);
+
   const filteredProviders = providers.filter(provider =>
     provider.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     provider.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
