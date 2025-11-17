@@ -2162,8 +2162,16 @@ const AdminDashboard = ({ onLogout }) => {
     loadNotifications();
     loadDatabaseStats();
     loadRevenueStats();
+  }, []);
 
-    // Atualização automática das estatísticas a cada 30 segundos
+  // Atualização automática das estatísticas - pausa quando modal de provedores está aberto
+  useEffect(() => {
+    // Não iniciar atualização se o modal estiver aberto
+    if (showProviderManagement) {
+      return;
+    }
+
+    // Atualização automática a cada 30 segundos
     const revenueInterval = setInterval(() => {
       loadRevenueStats();
     }, 30000);
@@ -2172,7 +2180,7 @@ const AdminDashboard = ({ onLogout }) => {
     return () => {
       clearInterval(revenueInterval);
     };
-  }, []);
+  }, [showProviderManagement]);
 
   // Load integration data when modal opens
   useEffect(() => {
