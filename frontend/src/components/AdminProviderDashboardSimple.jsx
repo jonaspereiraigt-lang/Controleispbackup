@@ -584,21 +584,21 @@ const AdminProviderDashboardSimple = () => {
                                   </button>
                                 )}
                                 
-                                {payment.payment_method === 'boleto' && payment.link && (
+                                {payment.link && (
                                   <button
                                     onClick={() => handlePrintBoleto(payment)}
                                     className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                                   >
-                                    🖨️ Imprimir Boleto
+                                    🖨️ Abrir Boleto
                                   </button>
                                 )}
                                 
-                                {payment.payment_method === 'pix' && payment.qr_code && (
+                                {payment.qr_code && (
                                   <button
                                     onClick={() => handleCopyPix(payment.qr_code)}
                                     className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
                                   >
-                                    📋 Copiar PIX
+                                    📋 Copiar Código PIX
                                   </button>
                                 )}
                                 
