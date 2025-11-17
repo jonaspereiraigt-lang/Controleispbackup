@@ -560,22 +560,62 @@ class BackendTester:
                 payments = response.json()
                 self.log_result("Admin Provider Payments", True, f"Endpoint working - Found {len(payments)} payments")
                 
-                # Check if our generated payment is in the list
-                if self.generated_payment_id:
-                    found_payment = False
-                    for payment in payments:
-                        if payment.get("payment_id") == self.generated_payment_id or payment.get("charge_id") == self.generated_payment_id:
-                            found_payment = True
-                            break
-                    
-                    if found_payment:
-                        print("   ✅ Generated payment found in admin's payment list")
-                    else:
-                        print("   ❌ Generated payment NOT found in admin's payment list")
-                        print(f"   Looking for payment_id: {self.generated_payment_id}")
-                        print(f"   Found payments: {[p.get('payment_id', p.get('charge_id')) for p in payments]}")
+                # Verify we have 2 payments (as requested in the test)
+                if len(payments) != 2:
+                    self.log_result("Admin Provider Payments - Count Check", False, f"Expected 2 payments, found {len(payments)}")
+                    return False
                 
-                return True
+                # Verify critical fields are present
+                critical_issues = []
+                for i, payment in enumerate(payments):
+                    payment_id = payment.get("payment_id") or payment.get("charge_id")
+                    
+                    # Check required fields
+                    required_fields = ["payment_id", "link", "pdf", "barcode", "status", "amount", "created_at", "expires_at"]
+                    missing_fields = []
+                    empty_fields = []
+                    
+                    for field in required_fields:
+                        if field not in payment:
+                            missing_fields.append(field)
+                        elif not payment.get(field):
+                            empty_fields.append(field)
+                    
+                    if missing_fields or empty_fields:
+                        critical_issues.append({
+                            "payment_id": payment_id,
+                            "missing_fields": missing_fields,
+                            "empty_fields": empty_fields
+                        })
+                    
+                    # Verify specific values
+                    if payment.get("status") != "pending":
+                        critical_issues.append({
+                            "payment_id": payment_id,
+                            "issue": f"Status should be 'pending', got '{payment.get('status')}'"
+                        })
+                    
+                    if payment.get("amount") != 199.00:
+                        critical_issues.append({
+                            "payment_id": payment_id,
+                            "issue": f"Amount should be 199.00, got {payment.get('amount')}"
+                        })
+                    
+                    # Log payment details
+                    print(f"   Payment {i+1}:")
+                    print(f"     ID: {payment_id}")
+                    print(f"     Link: {'✅' if payment.get('link') else '❌'} {payment.get('link', 'MISSING')}")
+                    print(f"     PDF: {'✅' if payment.get('pdf') else '❌'} {payment.get('pdf', 'MISSING')}")
+                    print(f"     Status: {payment.get('status', 'MISSING')}")
+                    print(f"     Amount: {payment.get('amount', 'MISSING')}")
+                    print(f"     Expires: {payment.get('expires_at', 'MISSING')}")
+                
+                if critical_issues:
+                    self.log_result("Admin Provider Payments - Fields Check", False, f"Critical issues found in payments", critical_issues)
+                    return False
+                else:
+                    self.log_result("Admin Provider Payments - Fields Check", True, "All critical fields present and correct")
+                    return True
             else:
                 self.log_result("Admin Provider Payments", False, f"HTTP {response.status_code}", response.text)
                 return False
