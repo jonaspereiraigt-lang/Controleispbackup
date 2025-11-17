@@ -1973,7 +1973,7 @@ async def generate_provider_financial(
     payment_data: dict,
     current_user=Depends(get_current_admin)
 ):
-    """Generate financial (boleto or PIX) for provider and mark as financial_generated (admin only)"""
+    """Generate financial (boleto or PIX) for provider with multiple installments (admin only)"""
     try:
         # Get provider
         provider = await db.providers.find_one({"id": provider_id})
@@ -1982,35 +1982,58 @@ async def generate_provider_financial(
         
         payment_type = payment_data.get("type", "boleto")  # boleto ou pix
         amount = payment_data.get("amount", 199.00)
+        installments = payment_data.get("installments", 1)  # Número de parcelas
         
-        # Generate payment based on type
-        if payment_type == "boleto":
-            payment_result = await create_efi_boleto_payment(provider_id, amount)
-        else:  # pix
-            payment_result = await create_efi_pix_payment(provider_id, amount)
+        # Get provider creation date or use today
+        created_at = provider.get("created_at")
+        if created_at:
+            try:
+                base_date = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            except:
+                base_date = datetime.now(timezone.utc)
+        else:
+            base_date = datetime.now(timezone.utc)
         
-        if not payment_result.get("success"):
-            raise HTTPException(status_code=400, detail="Erro ao gerar pagamento")
+        generated_payments = []
         
-        # Save payment to database
-        payment_doc = {
-            "id": str(uuid.uuid4()),
-            "provider_id": provider_id,
-            "payment_id": str(payment_result.get("charge_id", "")),
-            "payment_method": payment_type,
-            "amount": amount,
-            "status": "pending",
-            "link": payment_result.get("link", ""),
-            "pdf": payment_result.get("pdf", ""),
-            "barcode": payment_result.get("barcode", ""),
-            "qr_code": payment_result.get("qr_code", ""),
-            "txid": payment_result.get("txid", ""),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "expires_at": payment_result.get("expire_at", (datetime.now(timezone.utc) + timedelta(days=3)).isoformat()),
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }
-        
-        await db.payments.insert_one(payment_doc)
+        # Generate multiple installments
+        for installment_number in range(1, installments + 1):
+            # Calculate due date: 1 month after creation + (installment_number - 1) months
+            # First installment: 1 month after creation
+            # Second installment: 2 months after creation, etc.
+            due_date = base_date + timedelta(days=30 * installment_number)
+            
+            # Generate payment based on type
+            if payment_type == "boleto":
+                payment_result = await create_efi_boleto_payment(provider_id, amount, due_days=(30 * installment_number))
+            else:  # pix
+                payment_result = await create_efi_pix_payment(provider_id, amount)
+            
+            if not payment_result.get("success"):
+                raise HTTPException(status_code=400, detail=f"Erro ao gerar parcela {installment_number}")
+            
+            # Save payment to database
+            payment_doc = {
+                "id": str(uuid.uuid4()),
+                "provider_id": provider_id,
+                "payment_id": str(payment_result.get("charge_id", "")),
+                "payment_method": payment_type,
+                "amount": amount,
+                "installment_number": installment_number,
+                "total_installments": installments,
+                "status": "pending",
+                "link": payment_result.get("link", ""),
+                "pdf": payment_result.get("pdf", ""),
+                "barcode": payment_result.get("barcode", ""),
+                "qr_code": payment_result.get("qr_code", ""),
+                "txid": payment_result.get("txid", ""),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "expires_at": due_date.isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.payments.insert_one(payment_doc)
+            generated_payments.append(payment_doc)
         
         # Mark provider as financial_generated = True
         await db.providers.update_one(
@@ -2023,8 +2046,9 @@ async def generate_provider_financial(
         
         return {
             "success": True,
-            "message": "Financeiro gerado com sucesso! Provedor liberado.",
-            "payment": payment_result
+            "message": f"{installments} parcela(s) gerada(s) com sucesso!",
+            "payments_generated": len(generated_payments),
+            "total_amount": amount * installments
         }
         
     except HTTPException:
