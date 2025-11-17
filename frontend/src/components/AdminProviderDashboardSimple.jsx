@@ -31,7 +31,7 @@ const AdminProviderDashboardSimple = () => {
   const loadProviders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/admin/providers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
