@@ -2994,7 +2994,7 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
                       Total de Provedores
                     </div>
                     <div className="text-3xl font-bold mb-2 text-green-700">
-                      {providers.length}
+                      {allProviders?.length || 0}
                     </div>
                     <button
                       onClick={() => setShowProviderManagement(true)}
