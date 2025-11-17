@@ -2049,24 +2049,24 @@ const AdminLogin = ({ onLogin }) => {
                   />
                 </div>
 
-                <Button
+                <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 font-medium"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   data-testid="admin-login-submit-button"
                 >
                   {loading ? (
-                    <span className="flex items-center justify-center">
-                      <span className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Verificando...
-                    </span>
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Verificando...</span>
+                    </>
                   ) : (
                     <>
-                      <Shield className="w-4 h-4 mr-2" />
-                      Acessar Painel Admin
+                      <Shield className="w-4 h-4" />
+                      <span>Acessar Painel Admin</span>
                     </>
                   )}
-                </Button>
+                </button>
               </div>
             </form>
           </CardContent>
