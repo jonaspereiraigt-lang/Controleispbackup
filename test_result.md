@@ -147,15 +147,18 @@ frontend:
 backend:
   - task: "Integração Efi Bank para geração PIX/Boleto"
     implemented: true
-    working: false
+    working: "NA"
     file: "/app/backend/efi_service.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
         comment: "Integração implementada mas falha com erro 401 Unauthorized. Necessita credenciais válidas de sandbox (Client_Id e Client_Secret) da Efi Bank."
+      - working: "NA"
+        agent: "main"
+        comment: "Credenciais de homologação configuradas pelo usuário. Client_Id e Client_Secret atualizados no arquivo .env e backend reiniciado. Necessita teste para validar se as credenciais estão funcionando."
 
   - task: "Endpoints CRUD Admin de Provedores"
     implemented: true
