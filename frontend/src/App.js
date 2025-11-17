@@ -4240,6 +4240,11 @@ const ProviderDashboard = ({ onLogout }) => {
           setShowTermsModal(true);
         }
         
+        // Store in localStorage for later use
+        if (provider.due_day) {
+          localStorage.setItem("due_day", provider.due_day);
+        }
+        
         // Set logo if exists
         if (provider.logo_url) {
           setProviderLogo(provider.logo_url);
