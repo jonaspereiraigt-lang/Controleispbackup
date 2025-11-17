@@ -94,9 +94,14 @@ class EfiPaymentService:
             
             # Create charge via Efi API
             logger.info(f"Creating boleto charge for provider: {provider_data.get('name')}")
+            logger.info(f"Request body: {body}")
+            
             response = self.gn.create_charge(body=body)
             
-            if response.get("code") == 200:
+            logger.info(f"Efi response type: {type(response)}")
+            logger.info(f"Efi response: {response}")
+            
+            if isinstance(response, dict) and response.get("code") == 200:
                 data = response.get("data", {})
                 charge_id = data.get("charge_id")
                 
