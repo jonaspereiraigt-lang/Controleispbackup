@@ -5747,9 +5747,9 @@ const ProviderDashboard = ({ onLogout }) => {
     }
   };
 
-  // Payment Modal Component
-  const PaymentModal = () => (
-    <Dialog open={showPayment} onOpenChange={() => {}}>
+  // Payment Modal Component - DESABILITADO (pagamento via Efi Bank)
+  // const PaymentModal = () => (
+  //   <Dialog open={showPayment} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-[500px]" hideCloseButton={true}>
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold text-red-600">
