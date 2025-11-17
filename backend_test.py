@@ -128,7 +128,7 @@ class BackendTester:
         
         try:
             # Check database directly for valid providers
-            if self.db:
+            if self.db is not None:
                 providers = list(self.db.providers.find({
                     "is_active": True,
                     "name": {"$ne": None},
