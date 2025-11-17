@@ -602,6 +602,68 @@ const AdminProviderDashboardSimple = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 text-center">
+                          {needsFinancial ? (
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm(`Gerar BOLETO para ${provider.name}?\n\nValor: R$ ${provider.plan_value || 199.00}\n\nO provedor será liberado após a geração.`)) {
+                                    try {
+                                      setLoading(true);
+                                      const token = localStorage.getItem('admin_token');
+                                      await axios.post(
+                                        `${API}/admin/providers/${provider.id}/generate-financial`,
+                                        { type: 'boleto', amount: provider.plan_value || 199.00 },
+                                        { headers: { Authorization: `Bearer ${token}` } }
+                                      );
+                                      alert('✅ Boleto gerado com sucesso!\n\nProvedor liberado para usar o sistema.');
+                                      loadProviders();
+                                    } catch (error) {
+                                      console.error('Erro:', error);
+                                      alert('❌ Erro ao gerar boleto: ' + (error.response?.data?.detail || error.message));
+                                    } finally {
+                                      setLoading(false);
+                                    }
+                                  }
+                                }}
+                                disabled={loading}
+                                className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
+                              >
+                                📄 Gerar Boleto
+                              </button>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm(`Gerar PIX para ${provider.name}?\n\nValor: R$ ${provider.plan_value || 199.00}\n\nO provedor será liberado após a geração.`)) {
+                                    try {
+                                      setLoading(true);
+                                      const token = localStorage.getItem('admin_token');
+                                      await axios.post(
+                                        `${API}/admin/providers/${provider.id}/generate-financial`,
+                                        { type: 'pix', amount: provider.plan_value || 199.00 },
+                                        { headers: { Authorization: `Bearer ${token}` } }
+                                      );
+                                      alert('✅ PIX gerado com sucesso!\n\nProvedor liberado para usar o sistema.');
+                                      loadProviders();
+                                    } catch (error) {
+                                      console.error('Erro:', error);
+                                      alert('❌ Erro ao gerar PIX: ' + (error.response?.data?.detail || error.message));
+                                    } finally {
+                                      setLoading(false);
+                                    }
+                                  }
+                                }}
+                                disabled={loading}
+                                className="px-3 py-1.5 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 disabled:opacity-50"
+                              >
+                                💳 Gerar PIX
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-green-600 font-medium">✓ Liberado</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center">
                           <button onClick={(e) => { e.stopPropagation(); handleEditProvider(provider); }}
                             className="text-blue-600 hover:text-blue-800">
                             <Edit className="w-4 h-4" />
