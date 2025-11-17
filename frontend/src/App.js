@@ -2056,10 +2056,10 @@ const AdminLogin = ({ onLogin }) => {
                   data-testid="admin-login-submit-button"
                 >
                   {loading ? (
-                    <>
-                      <Clock className="w-4 h-4 mr-2 animate-spin" />
+                    <span className="flex items-center justify-center">
+                      <span className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Verificando...
-                    </>
+                    </span>
                   ) : (
                     <>
                       <Shield className="w-4 h-4 mr-2" />
