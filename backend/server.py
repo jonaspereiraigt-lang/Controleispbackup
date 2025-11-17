@@ -1584,6 +1584,135 @@ async def get_providers(current_user=Depends(get_current_user)):
     return provider_stats
 
 
+# =============================================================================
+# ADMIN PROVIDER CRUD ROUTES
+# =============================================================================
+
+@api_router.post("/admin/providers")
+async def create_provider_by_admin(provider_data: dict, current_user=Depends(get_current_admin)):
+    """Create a new provider (admin only)"""
+    try:
+        # Check if email already exists
+        existing = await db.providers.find_one({"email": provider_data.get("email")})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email já cadastrado")
+        
+        # Create provider
+        provider = Provider(
+            id=str(uuid.uuid4()),
+            name=provider_data.get("name"),
+            email=provider_data.get("email"),
+            password_hash=hash_password(provider_data.get("password", "123456")),
+            cnpj=provider_data.get("cnpj", ""),
+            cpf=provider_data.get("cpf", ""),
+            phone=provider_data.get("phone", ""),
+            address=provider_data.get("address", ""),
+            number=provider_data.get("number", ""),
+            complement=provider_data.get("complement", ""),
+            neighborhood=provider_data.get("neighborhood", ""),
+            city=provider_data.get("city", ""),
+            state=provider_data.get("state", ""),
+            cep=provider_data.get("cep", ""),
+            username=provider_data.get("username", provider_data.get("email")),
+            contract_number=provider_data.get("contract_number", ""),
+            contract_date=provider_data.get("contract_date", ""),
+            plan_type=provider_data.get("plan_type", "mensal"),
+            plan_value=provider_data.get("plan_value", 199.00),
+            payment_method=provider_data.get("payment_method", "boleto"),
+            is_active=True,
+            approved=True
+        )
+        
+        provider_dict = provider.dict()
+        provider_dict["created_at"] = provider_dict["created_at"].isoformat()
+        provider_dict["updated_at"] = provider_dict["updated_at"].isoformat()
+        
+        await db.providers.insert_one(provider_dict)
+        
+        return {"success": True, "message": "Provedor criado com sucesso", "provider_id": provider.id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating provider: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao criar provedor")
+
+
+@api_router.put("/admin/providers/{provider_id}")
+async def update_provider_by_admin(provider_id: str, provider_data: dict, current_user=Depends(get_current_admin)):
+    """Update provider information (admin only)"""
+    try:
+        provider = await db.providers.find_one({"id": provider_id})
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        # Prepare update data
+        update_data = {
+            "name": provider_data.get("name"),
+            "email": provider_data.get("email"),
+            "cnpj": provider_data.get("cnpj", ""),
+            "cpf": provider_data.get("cpf", ""),
+            "phone": provider_data.get("phone", ""),
+            "address": provider_data.get("address", ""),
+            "number": provider_data.get("number", ""),
+            "complement": provider_data.get("complement", ""),
+            "neighborhood": provider_data.get("neighborhood", ""),
+            "city": provider_data.get("city", ""),
+            "state": provider_data.get("state", ""),
+            "cep": provider_data.get("cep", ""),
+            "username": provider_data.get("username", provider_data.get("email")),
+            "contract_number": provider_data.get("contract_number", ""),
+            "contract_date": provider_data.get("contract_date", ""),
+            "plan_type": provider_data.get("plan_type", "mensal"),
+            "plan_value": provider_data.get("plan_value", 199.00),
+            "payment_method": provider_data.get("payment_method", "boleto"),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Update password if provided
+        if provider_data.get("password"):
+            update_data["password_hash"] = hash_password(provider_data["password"])
+        
+        await db.providers.update_one(
+            {"id": provider_id},
+            {"$set": update_data}
+        )
+        
+        return {"success": True, "message": "Provedor atualizado com sucesso"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating provider: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao atualizar provedor")
+
+
+@api_router.delete("/admin/providers/{provider_id}")
+async def delete_provider_by_admin(provider_id: str, current_user=Depends(get_current_admin)):
+    """Delete/deactivate provider (admin only)"""
+    try:
+        provider = await db.providers.find_one({"id": provider_id})
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        # Soft delete - just deactivate
+        await db.providers.update_one(
+            {"id": provider_id},
+            {"$set": {
+                "is_active": False,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {"success": True, "message": "Provedor desativado com sucesso"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting provider: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao deletar provedor")
+
+
 @api_router.post("/admin/providers/{provider_id}/block", response_model=ProviderActionResponse)
 async def block_provider(provider_id: str, block_data: ProviderBlockRequest, current_user=Depends(get_current_user)):
     """Block a provider account"""
