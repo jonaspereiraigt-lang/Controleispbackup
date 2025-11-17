@@ -195,8 +195,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Dashboard Admin de Gestão de Provedores (Frontend)"
-  stuck_tasks: []
+    - "Endpoint Admin Generate Financial"
+  stuck_tasks:
+    - "Endpoint Admin Generate Financial"
   test_all: false
   test_priority: "high_first"
 
