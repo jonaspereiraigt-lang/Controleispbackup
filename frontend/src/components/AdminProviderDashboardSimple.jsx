@@ -85,7 +85,7 @@ const AdminProviderDashboardSimple = () => {
   const handleSaveProvider = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('token');
       
       if (selectedProvider) {
         await axios.put(`${API}/admin/providers/${selectedProvider.id}`, formData,
@@ -115,7 +115,7 @@ const AdminProviderDashboardSimple = () => {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('token');
       await axios.delete(`${API}/admin/providers/${providerId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -132,7 +132,7 @@ const AdminProviderDashboardSimple = () => {
   const loadProviderPayments = async (providerId) => {
     try {
       setLoadingPayments(true);
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/admin/providers/${providerId}/payments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -149,7 +149,7 @@ const AdminProviderDashboardSimple = () => {
     if (!window.confirm('Confirmar recebimento deste pagamento?')) return;
     
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('token');
       await axios.post(`${API}/admin/payments/${paymentId}/confirm`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -165,7 +165,7 @@ const AdminProviderDashboardSimple = () => {
     if (!window.confirm('Tem certeza que deseja cancelar este pagamento?')) return;
     
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('token');
       await axios.post(`${API}/admin/payments/${paymentId}/cancel`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -611,7 +611,7 @@ const AdminProviderDashboardSimple = () => {
                                   if (window.confirm(`Gerar BOLETO para ${provider.name}?\n\nValor: R$ ${provider.plan_value || 199.00}\n\nO provedor será liberado após a geração.`)) {
                                     try {
                                       setLoading(true);
-                                      const token = localStorage.getItem('admin_token');
+                                      const token = localStorage.getItem('token');
                                       await axios.post(
                                         `${API}/admin/providers/${provider.id}/generate-financial`,
                                         { type: 'boleto', amount: provider.plan_value || 199.00 },
@@ -638,7 +638,7 @@ const AdminProviderDashboardSimple = () => {
                                   if (window.confirm(`Gerar PIX para ${provider.name}?\n\nValor: R$ ${provider.plan_value || 199.00}\n\nO provedor será liberado após a geração.`)) {
                                     try {
                                       setLoading(true);
-                                      const token = localStorage.getItem('admin_token');
+                                      const token = localStorage.getItem('token');
                                       await axios.post(
                                         `${API}/admin/providers/${provider.id}/generate-financial`,
                                         { type: 'pix', amount: provider.plan_value || 199.00 },
