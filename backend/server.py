@@ -4828,11 +4828,8 @@ async def upload_provider_logo(file: UploadFile = File(...), current_user=Depend
     print(f"[R2-UPLOAD] Iniciando upload de logo para provider: {current_user['user_id']}")
     print(f"[R2-UPLOAD] Arquivo: {file.filename}, tipo: {file.content_type}")
     
-    # Check subscription
-    has_active_subscription = await check_subscription_status(current_user["user_id"])
-    if not has_active_subscription:
-        print(f"[R2-UPLOAD] Erro: Assinatura inativa para provider: {current_user['user_id']}")
-        raise HTTPException(status_code=402, detail="Assinatura expirada. Renove para continuar usando o sistema.")
+    # Logo upload is allowed even without active subscription
+    # (Provider should be able to customize their profile during setup)
     
     # Validate file type
     if not file.content_type or not file.content_type.startswith('image/'):
