@@ -4263,14 +4263,18 @@ const ProviderDashboard = ({ onLogout }) => {
           logo_url: provider.logo_url
         });
         
-        // Check if this is first login and terms not accepted
-        if (!provider.terms_accepted && provider.due_day) {
+        // Check if financial not generated
+        if (!provider.financial_generated && provider.due_day) {
+          console.log("🔍 Provedor sem financeiro (via API) - Mostrando tela!");
           setShowTermsModal(true);
         }
         
         // Store in localStorage for later use
         if (provider.due_day) {
           localStorage.setItem("due_day", provider.due_day);
+        }
+        if (provider.financial_generated !== undefined) {
+          localStorage.setItem("financial_generated", provider.financial_generated);
         }
         
         // Set logo if exists
