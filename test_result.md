@@ -213,6 +213,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Botões Abrir/Baixar Boleto no Meu Financeiro"
     - "Dashboard Admin de Gestão de Provedores"
   stuck_tasks: []
   test_all: false
