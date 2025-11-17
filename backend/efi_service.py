@@ -69,12 +69,6 @@ class EfiPaymentService:
                     "value": int(amount * 100),  # Convert to cents
                     "amount": 1
                 }],
-                "customer": {
-                    "name": provider_data.get("name", "")[:80],  # Max 80 chars
-                    "email": provider_data.get("email", ""),
-                    "cpf": provider_data.get("cpf", ""),
-                    "phone_number": provider_data.get("phone", ""),
-                },
                 "metadata": {
                     "custom_id": provider_data.get("provider_id", ""),
                     "notification_url": os.getenv("WEBHOOK_URL", "https://admin-isp.preview.emergentagent.com/api/webhook/efi")
@@ -85,7 +79,7 @@ class EfiPaymentService:
                         "customer": {
                             "name": provider_data.get("name", "")[:80],
                             "email": provider_data.get("email", ""),
-                            "cpf": provider_data.get("cpf", ""),
+                            "cpf": provider_data.get("cpf", "11111111111"),  # Default CPF if not provided
                             "phone_number": provider_data.get("phone", ""),
                         }
                     }
