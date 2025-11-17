@@ -1866,14 +1866,21 @@ async def get_provider_payments(provider_id: str, current_user=Depends(get_curre
         # Get payments from database
         payments = await db.payments.find({"provider_id": provider_id}).sort("created_at", -1).to_list(100)
         
-        # Get subscriptions to enrich data
+        # Convert to list and remove MongoDB _id
+        clean_payments = []
         for payment in payments:
+            # Remove _id field
+            payment.pop('_id', None)
+            
+            # Get subscriptions to enrich data
             if payment.get("subscription_id"):
                 subscription = await db.subscriptions.find_one({"id": payment["subscription_id"]})
                 if subscription:
                     payment["subscription_status"] = subscription.get("payment_status")
+            
+            clean_payments.append(payment)
         
-        return payments
+        return clean_payments
         
     except Exception as e:
         print(f"Error getting provider payments: {e}")
