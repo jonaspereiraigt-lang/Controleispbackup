@@ -144,6 +144,18 @@ frontend:
         agent: "main"
         comment: "Dashboard implementado com funcionalidades CRUD de provedores, botão Gerar Financeiro e tab Financeiro. Precisa de teste E2E para confirmar funcionamento completo."
 
+  - task: "Botões Abrir/Baixar Boleto no Meu Financeiro"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implementação já existente verificada: Botões 'Abrir Boleto' e 'Baixar PDF' já implementados no modal Meu Financeiro (linhas 8690-8736). Aparecem apenas para pagamentos com status='pending' (em aberto ou atrasados). Backend retorna corretamente os campos 'link' e 'pdf' da Efi Bank. Precisa de teste E2E para confirmar que os links funcionam corretamente."
+
 backend:
   - task: "Integração Efi Bank para geração PIX/Boleto"
     implemented: true
