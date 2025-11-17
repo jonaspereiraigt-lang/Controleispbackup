@@ -686,22 +686,24 @@ class BackendTester:
     
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Financial Generation Issue Investigation")
+        print("🚀 Starting Boleto Generation and Link/PDF Fields Verification")
         print("=" * 80)
-        print("TESTING: Why admin-generated financial records don't appear in:")
-        print("1. Provider's 'Meu Financeiro' button")
-        print("2. Admin's 'Financeiro' tab")
+        print("TESTING: Complete flow for boleto generation with 'link' and 'pdf' fields")
+        print("1. Admin generates financial with 2 boleto installments")
+        print("2. Verify admin can see payments with link/pdf fields")
+        print("3. Verify provider can see payments with link/pdf fields")
         print("=" * 80)
         
-        # Test sequence - focused on the specific issue
+        # Test sequence - focused on the boleto flow
         tests = [
             ("Database Connection", self.connect_to_database),
+            ("Create Admin", self.create_admin_if_needed),
             ("Admin Login", self.admin_login),
-            ("Get Existing Providers", self.get_existing_providers),
+            ("Create Test Provider", self.create_test_provider),
             ("Provider Login", self.test_provider_login),
-            ("Admin Generate Financial", self.test_admin_generate_financial),
-            ("Provider My Payments", self.test_provider_my_payments),
+            ("Generate Boleto Installments", self.test_generate_financial_boleto_installments),
             ("Admin Provider Payments", self.test_admin_provider_payments),
+            ("Provider My Payments", self.test_provider_my_payments),
             ("Database Payments Check", self.check_database_payments),
         ]
         
@@ -723,42 +725,47 @@ class BackendTester:
         
         # Summary
         print("=" * 80)
-        print("📊 FINANCIAL GENERATION ISSUE INVESTIGATION SUMMARY")
+        print("📊 BOLETO GENERATION AND LINK/PDF VERIFICATION SUMMARY")
         print("=" * 80)
         print(f"✅ Passed: {passed}")
         print(f"❌ Failed: {failed}")
         print(f"📈 Success Rate: {(passed/(passed+failed)*100):.1f}%")
         
         # Analyze the specific issue
-        print("\n🔍 ISSUE ANALYSIS:")
+        print("\n🔍 BOLETO FUNCTIONALITY ANALYSIS:")
         
         # Check if the main endpoints are working
-        generate_working = any(r["success"] and "generate financial" in r["test"].lower() for r in self.results)
+        generate_working = any(r["success"] and "generate boleto" in r["test"].lower() for r in self.results)
         provider_payments_working = any(r["success"] and "provider my payments" in r["test"].lower() for r in self.results)
         admin_payments_working = any(r["success"] and "admin provider payments" in r["test"].lower() for r in self.results)
         
         if generate_working:
-            print("   ✅ Admin can generate financial records")
+            print("   ✅ Admin can generate boleto installments")
         else:
-            print("   ❌ Admin CANNOT generate financial records - ROOT CAUSE")
+            print("   ❌ Admin CANNOT generate boleto installments - CRITICAL ISSUE")
         
         if provider_payments_working:
-            print("   ✅ Provider payments endpoint is working")
+            print("   ✅ Provider can access payments with link/pdf fields")
         else:
-            print("   ❌ Provider payments endpoint is BROKEN")
+            print("   ❌ Provider payments missing link/pdf fields - CRITICAL ISSUE")
         
         if admin_payments_working:
-            print("   ✅ Admin payments endpoint is working")
+            print("   ✅ Admin can access payments with link/pdf fields")
         else:
-            print("   ❌ Admin payments endpoint is BROKEN")
+            print("   ❌ Admin payments missing link/pdf fields - CRITICAL ISSUE")
         
-        # Root cause analysis
-        if generate_working and not (provider_payments_working and admin_payments_working):
-            print("\n🎯 LIKELY ROOT CAUSE: Payment generation works but query endpoints are broken")
-        elif not generate_working:
-            print("\n🎯 LIKELY ROOT CAUSE: Payment generation is not working properly")
-        elif generate_working and provider_payments_working and admin_payments_working:
-            print("\n🎯 POSSIBLE CAUSE: Data mapping issue (provider_id mismatch or wrong collection)")
+        # Final verdict
+        if generate_working and provider_payments_working and admin_payments_working:
+            print("\n🎉 BOLETO FUNCTIONALITY: FULLY WORKING")
+            print("   Providers can click and print boletos from 'Meu Financeiro'")
+        else:
+            print("\n❌ BOLETO FUNCTIONALITY: ISSUES FOUND")
+            if not generate_working:
+                print("   - Fix boleto generation endpoint")
+            if not provider_payments_working:
+                print("   - Fix provider payments endpoint (missing link/pdf)")
+            if not admin_payments_working:
+                print("   - Fix admin payments endpoint (missing link/pdf)")
         
         return passed, failed
 
