@@ -784,6 +784,9 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     user_type: str
+    first_login: Optional[bool] = None
+    terms_accepted: Optional[bool] = None
+    due_day: Optional[int] = None
 
 
 class ForgotPasswordRequest(BaseModel):
