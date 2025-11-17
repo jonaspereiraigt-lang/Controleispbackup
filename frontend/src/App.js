@@ -2920,18 +2920,17 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
   // Renderização condicional do dashboard de provedores
   if (showProviderManagement) {
     return (
-      <div>
-        <div className="bg-gray-700 px-6 py-4 flex items-center justify-between">
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-gray-700 px-6 py-4 flex items-center justify-between shadow-md">
           <h1 className="text-xl font-bold text-white">Gestão de Provedores</h1>
-          <Button
+          <button
             onClick={() => setShowProviderManagement(false)}
-            variant="outline"
-            className="bg-white"
+            className="px-4 py-2 bg-white text-gray-900 rounded hover:bg-gray-100 font-medium"
           >
             ← Voltar ao Dashboard
-          </Button>
+          </button>
         </div>
-        <AdminProviderDashboard />
+        <AdminProviderDashboardSimple />
       </div>
     );
   }
