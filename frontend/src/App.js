@@ -4099,7 +4099,7 @@ const ProviderDashboard = ({ onLogout }) => {
     );
 
     loadClients();
-    checkPaymentStatus();
+    // checkPaymentStatus(); - DESABILITADO (pagamento agora via Efi Bank)
     loadProviderInfo();
     loadMyPayments(); // Carregar pagamentos e status de bloqueio
     loadClientReminders();
