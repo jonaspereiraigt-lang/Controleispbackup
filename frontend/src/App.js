@@ -2917,23 +2917,29 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
     toast.success("WhatsApp aberto com mensagem de cobrança!");
   };
 
-  // Renderização condicional do dashboard de provedores
-  if (showProviderManagement) {
+  // Modal fullscreen para gestão de provedores
+  const ProviderManagementModal = () => {
+    if (!showProviderManagement) return null;
+    
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-gray-700 px-6 py-4 flex items-center justify-between shadow-md">
-          <h1 className="text-xl font-bold text-white">Gestão de Provedores</h1>
-          <button
-            onClick={() => setShowProviderManagement(false)}
-            className="px-4 py-2 bg-white text-gray-900 rounded hover:bg-gray-100 font-medium"
-          >
-            ← Voltar ao Dashboard
-          </button>
+      <div className="fixed inset-0 z-50 bg-white">
+        <div className="h-full flex flex-col">
+          <div className="bg-gray-700 px-6 py-4 flex items-center justify-between shadow-md">
+            <h1 className="text-xl font-bold text-white">Gestão de Provedores</h1>
+            <button
+              onClick={() => setShowProviderManagement(false)}
+              className="px-4 py-2 bg-white text-gray-900 rounded hover:bg-gray-100 font-medium"
+            >
+              ← Voltar ao Dashboard
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto">
+            <AdminProviderDashboardSimple />
+          </div>
         </div>
-        <AdminProviderDashboardSimple />
       </div>
     );
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
