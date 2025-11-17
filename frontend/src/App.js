@@ -2155,9 +2155,7 @@ const AdminDashboard = ({ onLogout }) => {
   const [restoringBackup, setRestoringBackup] = useState(false);
   const [selectedBackupFile, setSelectedBackupFile] = useState(null);
   
-  // Estados para sistema de pagamentos
-  const [systemSettings, setSystemSettings] = useState({ payment_required: false });
-  const [togglingPayment, setTogglingPayment] = useState(false);
+  // Estados para sistema de pagamentos - REMOVIDO (sistema não é mais gratuito)
 
   useEffect(() => {
     loadProviders();
