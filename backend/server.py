@@ -24,6 +24,10 @@ import brazilnum.cnpj as cnpj_utils
 import brazilnum.cpf as cpf_utils
 # MERCADO PAGO INTEGRATION DISABLED - Will be replaced with Efi Bank
 # import mercadopago
+
+# EFI BANK INTEGRATION
+from efi_service import efi_service
+
 import qrcode
 from io import BytesIO
 import base64
