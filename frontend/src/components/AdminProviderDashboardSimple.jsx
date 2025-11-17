@@ -13,6 +13,8 @@ const AdminProviderDashboardSimple = () => {
   const [activeTab, setActiveTab] = useState('cliente');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [payments, setPayments] = useState([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '', email: '', cnpj: '', cpf: '', phone: '', address: '',
