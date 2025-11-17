@@ -1563,21 +1563,21 @@ async def is_payment_required():
 
 async def check_subscription_status(provider_id: str):
     """Check if provider has active subscription (including promotional)"""
-    # Se sistema está gratuito, todos têm acesso
-    if not await is_payment_required():
-        return True
-        
-    current_time = datetime.now(timezone.utc).isoformat()
+    # New system: Check if provider is blocked due to overdue payments
+    provider = await db.providers.find_one({"id": provider_id})
+    if not provider:
+        return False
     
-    # Verificar assinaturas ativas ou promocionais válidas
-    subscription = await db.subscriptions.find_one({
-        "provider_id": provider_id,
-        "$or": [
-            {"payment_status": "active", "expires_at": {"$gt": current_time}},
-            {"payment_status": "promotional", "expires_at": {"$gt": current_time}}
-        ]
-    })
-    return subscription is not None
+    # If provider is blocked, return False (no access)
+    if provider.get("is_blocked", False):
+        return False
+    
+    # Check if financial was generated (has payment plan)
+    if not provider.get("financial_generated", False):
+        # Provider hasn't accepted terms or admin hasn't generated financial yet
+        return False
+    
+    return True
 
 
 async def get_provider_subscription(provider_id: str):
