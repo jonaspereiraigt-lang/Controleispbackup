@@ -729,6 +729,9 @@ class Provider(BaseModel):
     contract_acceptance_date: Optional[datetime] = None
     contract_ip: Optional[str] = None
     contract_version: str = "1.0"
+    financial_generated: bool = False  # Se o admin já gerou o financeiro
+    approved: bool = False  # Se foi aprovado pelo admin
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ClientCreate(BaseModel):
