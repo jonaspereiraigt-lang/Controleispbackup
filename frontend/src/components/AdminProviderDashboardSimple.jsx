@@ -62,6 +62,24 @@ const AdminProviderDashboardSimple = () => {
     }
   };
 
+  // Verificar se pagamento está atrasado
+  const isOverdue = (payment) => {
+    if (payment.status !== 'pending') return false;
+    if (!payment.expires_at) return false;
+    const expiryDate = new Date(payment.expires_at);
+    const today = new Date();
+    return expiryDate < today;
+  };
+
+  // Filtrar pagamentos por status
+  const getFilteredPayments = () => {
+    if (paymentFilter === 'todos') return selectedProviderPayments;
+    if (paymentFilter === 'pago') return selectedProviderPayments.filter(p => p.status === 'paid');
+    if (paymentFilter === 'aberto') return selectedProviderPayments.filter(p => p.status === 'pending' && !isOverdue(p));
+    if (paymentFilter === 'atrasado') return selectedProviderPayments.filter(p => p.status === 'pending' && isOverdue(p));
+    return selectedProviderPayments;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
