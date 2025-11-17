@@ -8621,6 +8621,162 @@ const ProviderDashboard = ({ onLogout }) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal Meu Financeiro */}
+      <Dialog open={showFinancialModal} onOpenChange={setShowFinancialModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <DollarSign className="w-6 h-6 text-purple-600" />
+              Meu Financeiro
+              {isBlocked && (
+                <span className="text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                  ⚠️ Conta Bloqueada - Pagamento em Atraso
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          {loadingPayments ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">Carregando pagamentos...</p>
+            </div>
+          ) : myPayments.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <DollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">Nenhum pagamento encontrado</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Filtros */}
+              <div className="flex gap-2 flex-wrap">
+                <button className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm font-medium">
+                  Todos ({myPayments.length})
+                </button>
+                <button className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">
+                  Em Aberto ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) >= new Date()).length})
+                </button>
+                <button className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">
+                  Atrasados ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) < new Date()).length})
+                </button>
+                <button className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-sm font-medium">
+                  Pagos ({myPayments.filter(p => p.status === 'paid').length})
+                </button>
+              </div>
+
+              {/* Lista de Pagamentos */}
+              {myPayments.map((payment) => {
+                const isOverdue = payment.status === 'pending' && new Date(payment.expires_at) < new Date();
+                const isPending = payment.status === 'pending' && new Date(payment.expires_at) >= new Date();
+                
+                return (
+                  <div 
+                    key={payment.id} 
+                    className={`border rounded-lg p-4 ${
+                      isOverdue ? 'border-l-4 border-l-red-500 bg-red-50' :
+                      isPending ? 'border-l-4 border-l-yellow-500 bg-yellow-50' :
+                      'bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          payment.status === 'paid' ? 'bg-green-500' :
+                          isOverdue ? 'bg-red-500' :
+                          'bg-yellow-500'
+                        }`} />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {payment.payment_method === 'boleto' ? '📄 Boleto Bancário' : '💳 PIX'}
+                            {isOverdue && <span className="ml-2 text-xs text-red-600 font-bold">⚠️ ATRASADO</span>}
+                          </h4>
+                          <p className="text-sm text-gray-500">ID: {payment.payment_id || payment.id}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-gray-900">
+                          R$ {payment.amount ? payment.amount.toFixed(2) : '0.00'}
+                        </p>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          payment.status === 'paid' ? 'bg-green-100 text-green-800' :
+                          isOverdue ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {payment.status === 'paid' ? 'Pago' : isOverdue ? 'Atrasado' : 'Em Aberto'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mb-3">
+                      <div>
+                        <p className="text-gray-500">Criado em:</p>
+                        <p className="font-medium">{payment.created_at ? new Date(payment.created_at).toLocaleDateString('pt-BR') : '-'}</p>
+                      </div>
+                      {payment.expires_at && (
+                        <div>
+                          <p className="text-gray-500">Vencimento:</p>
+                          <p className={`font-medium ${isOverdue ? 'text-red-600' : ''}`}>
+                            {new Date(payment.expires_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      )}
+                      {payment.paid_at && (
+                        <div>
+                          <p className="text-gray-500">Pago em:</p>
+                          <p className="font-medium text-green-600">{new Date(payment.paid_at).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Ações */}
+                    {payment.status === 'pending' && (
+                      <div className="flex flex-wrap gap-2 pt-3 border-t">
+                        {payment.link && (
+                          <a
+                            href={payment.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 font-medium"
+                          >
+                            🖨️ Abrir Boleto
+                          </a>
+                        )}
+                        {payment.pdf && (
+                          <a
+                            href={payment.pdf}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 font-medium"
+                          >
+                            📄 Baixar PDF
+                          </a>
+                        )}
+                        {payment.barcode && (
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(payment.barcode);
+                              alert('Código de barras copiado!');
+                            }}
+                            className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 font-medium"
+                          >
+                            📋 Copiar Código
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => setShowFinancialModal(false)} variant="outline">
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Rodapé */}
       <footer className="text-gray-700 py-4 mt-8">
