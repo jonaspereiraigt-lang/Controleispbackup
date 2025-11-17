@@ -5070,7 +5070,9 @@ async def get_provider_info(current_user=Depends(get_current_provider)):
             "email": provider.get("email", ""),
             "phone": provider.get("phone", ""),
             "logo_url": provider.get("logo_url"),
-            "created_at": provider.get("created_at")
+            "created_at": provider.get("created_at"),
+            "terms_accepted": provider.get("terms_accepted", False),
+            "due_day": provider.get("due_day")
         }
     }
 
