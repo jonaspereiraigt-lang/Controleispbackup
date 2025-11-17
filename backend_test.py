@@ -136,21 +136,10 @@ class BackendTester:
                     test_provider = providers[0]
                     self.test_provider_id = test_provider.get("id")
                     self.test_provider_email = test_provider.get("email")
-                    # Reset password to known value for testing
-                    self.test_provider_password = "senha123"
+                    # Use a known password that might work
+                    self.test_provider_password = "123456"  # Common default password
                     
-                    # Update provider password to known value
-                    update_response = self.session.put(
-                        f"{BACKEND_URL}/admin/providers/{self.test_provider_id}",
-                        json={
-                            "name": test_provider.get("name"),
-                            "email": test_provider.get("email"),
-                            "password": self.test_provider_password  # Set known password
-                        },
-                        timeout=30
-                    )
-                    
-                    self.log_result("Create Provider", True, f"Using existing provider: {self.test_provider_id}")
+                    self.log_result("Create Provider", True, f"Using existing provider: {self.test_provider_id} ({self.test_provider_email})")
                     return True
             
             # If no existing providers, create a new one
