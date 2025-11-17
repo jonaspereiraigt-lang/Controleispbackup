@@ -242,7 +242,7 @@ const AdminProviderDashboardSimple = () => {
         </div>
 
         {isEditing ? (
-          /* Edit Form */
+          /* Edit Form - Gestão de Provedores */
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-bold mb-6">{selectedProvider ? 'Editar Provedor' : 'Novo Provedor'}</h2>
             
