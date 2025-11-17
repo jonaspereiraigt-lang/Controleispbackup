@@ -558,6 +558,7 @@ const AdminProviderDashboardSimple = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CNPJ</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cidade/UF</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Financeiro</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Ações</th>
                   </tr>
                 </thead>
