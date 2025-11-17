@@ -1219,7 +1219,7 @@ async def create_efi_boleto_payment(provider_id: str, amount: float = 199.00):
         }
         
         # Create boleto via Efi Bank
-        result = efi_service.create_boleto_charge(provider_data, amount, due_days=3)
+        result = get_efi_service().create_boleto_charge(provider_data, amount, due_days=3)
         
         if result.get("success"):
             return {
