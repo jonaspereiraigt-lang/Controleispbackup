@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Corrigir erro React DOM 'NotFoundError: insertBefore' no dashboard admin e configurar integração Efi Bank"
+user_problem_statement: "Investigar por que os boletos gerados pelo admin não estão aparecendo no financeiro do provedor e na consulta do admin"
 
 frontend:
   - task: "Correção erro React DOM insertBefore e removeChild"
