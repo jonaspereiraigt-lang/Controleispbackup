@@ -26,7 +26,7 @@ import brazilnum.cpf as cpf_utils
 # import mercadopago
 
 # EFI BANK INTEGRATION
-from efi_service import efi_service
+from efi_service import get_efi_service
 
 import qrcode
 from io import BytesIO
