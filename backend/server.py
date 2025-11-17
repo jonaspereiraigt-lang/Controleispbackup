@@ -1967,6 +1967,53 @@ async def cancel_payment_admin(payment_id: str, current_user=Depends(get_current
         raise HTTPException(status_code=500, detail="Erro ao cancelar pagamento")
 
 
+@api_router.post("/admin/providers/{provider_id}/generate-financial")
+async def generate_provider_financial(
+    provider_id: str,
+    payment_data: dict,
+    current_user=Depends(get_current_admin)
+):
+    """Generate financial (boleto or PIX) for provider and mark as financial_generated (admin only)"""
+    try:
+        # Get provider
+        provider = await db.providers.find_one({"id": provider_id})
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        payment_type = payment_data.get("type", "boleto")  # boleto ou pix
+        amount = payment_data.get("amount", 199.00)
+        
+        # Generate payment based on type
+        if payment_type == "boleto":
+            payment_result = await create_efi_boleto_payment(provider_id, amount)
+        else:  # pix
+            payment_result = await create_efi_pix_payment(provider_id, amount)
+        
+        if not payment_result.get("success"):
+            raise HTTPException(status_code=400, detail="Erro ao gerar pagamento")
+        
+        # Mark provider as financial_generated = True
+        await db.providers.update_one(
+            {"id": provider_id},
+            {"$set": {
+                "financial_generated": True,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {
+            "success": True,
+            "message": "Financeiro gerado com sucesso! Provedor liberado.",
+            "payment": payment_result
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error generating financial: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao gerar financeiro")
+
+
 # Duplicate function removed - using the new renew_provider_subscription function above
 
 @api_router.post("/admin/renew-all-subscriptions")
