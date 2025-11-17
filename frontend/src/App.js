@@ -2149,6 +2149,9 @@ const AdminDashboard = ({ onLogout }) => {
   // Estados para backup de banco de dados
   const [backingUpDatabase, setBackingUpDatabase] = useState(false);
   const [generatingBackup, setGeneratingBackup] = useState(false);
+  
+  // Estado para mostrar dashboard de gestão de provedores
+  const [showProviderManagement, setShowProviderManagement] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState(false);
   const [selectedBackupFile, setSelectedBackupFile] = useState(null);
   
