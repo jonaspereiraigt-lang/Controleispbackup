@@ -1596,7 +1596,10 @@ async def get_providers(current_user=Depends(get_current_user)):
             subscription_type=subscription_type,
             subscription_expires_at=subscription_expires_at,
             days_remaining=days_remaining,
-            is_promotional=is_promotional
+            is_promotional=is_promotional,
+            plan_value=provider.get("plan_value"),
+            installments=provider.get("installments"),
+            financial_generated=provider.get("financial_generated", False)
         )
         provider_stats.append(provider_stat)
     
