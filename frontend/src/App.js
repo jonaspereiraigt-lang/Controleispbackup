@@ -7462,8 +7462,8 @@ const ProviderDashboard = ({ onLogout }) => {
         </div>
       </main>
 
-      {/* Payment Modal */}
-      <PaymentModal />
+      {/* Payment Modal - DESABILITADO (pagamento via Efi Bank) */}
+      {/* <PaymentModal /> */}
 
       {/* Modal de Meus Clientes */}
       <Dialog open={showMyClientsSearch} onOpenChange={setShowMyClientsSearch}>
