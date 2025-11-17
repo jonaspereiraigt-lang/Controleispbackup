@@ -80,7 +80,7 @@ class BackendTester:
                 "nome_fantasia": "Efi Test Provider",
                 "email": f"teste.efi.{int(time.time())}@example.com",
                 "password": "senha123",
-                "cnpj": "12.345.678/0001-90",
+                "cnpj": "11.222.333/0001-81",
                 "cpf": "123.456.789-00",
                 "phone": "(11) 99999-9999",
                 "address": "Rua Teste, 123",
