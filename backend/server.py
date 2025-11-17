@@ -1197,17 +1197,115 @@ async def reset_password(request: ResetPasswordRequest):
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
 
 
-# MERCADO PAGO PAYMENT FUNCTIONS - DISABLED
-# These will be replaced with Efi Bank integration
-"""
-async def create_pix_payment(provider_id: str, amount: float = 99.00):
-    # Create PIX payment with Mercado Pago - DISABLED
-    pass
+# =============================================================================
+# EFI BANK PAYMENT FUNCTIONS
+# =============================================================================
 
-async def verify_webhook_signature(payload: str, signature: str) -> bool:
-    # Verify Mercado Pago webhook signature - DISABLED
-    return False
-"""
+async def create_efi_boleto_payment(provider_id: str, amount: float = 199.00):
+    """Create boleto payment with Efi Bank for provider subscription"""
+    try:
+        # Get provider info
+        provider = await db.providers.find_one({"id": provider_id})
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        # Prepare provider data
+        provider_data = {
+            "provider_id": provider_id,
+            "name": provider["name"],
+            "email": provider["email"],
+            "cpf": provider.get("cpf", ""),
+            "phone": provider.get("phone", "")
+        }
+        
+        # Create boleto via Efi Bank
+        result = efi_service.create_boleto_charge(provider_data, amount, due_days=3)
+        
+        if result.get("success"):
+            return {
+                "success": True,
+                "payment_type": "boleto",
+                "charge_id": result["charge_id"],
+                "barcode": result["barcode"],
+                "link": result["link"],
+                "pdf": result["pdf"],
+                "amount": amount,
+                "expire_at": result["expire_at"],
+                "status": "pending"
+            }
+        else:
+            raise HTTPException(status_code=400, detail=result.get("error", "Erro ao criar boleto"))
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating Efi boleto: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao criar boleto")
+
+
+async def create_efi_pix_payment(provider_id: str, amount: float = 199.00):
+    """Create PIX payment with Efi Bank for provider subscription"""
+    try:
+        # Get provider info
+        provider = await db.providers.find_one({"id": provider_id})
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        # Prepare provider data
+        provider_data = {
+            "provider_id": provider_id,
+            "name": provider["name"],
+            "email": provider["email"]
+        }
+        
+        # Create PIX via Efi Bank
+        result = efi_service.create_pix_charge(provider_data, amount, expiration_minutes=30)
+        
+        if result.get("success"):
+            return {
+                "success": True,
+                "payment_type": "pix",
+                "charge_id": result["charge_id"],
+                "qr_code": result["qr_code"],
+                "qr_code_base64": result["qr_code_base64"],
+                "amount": amount,
+                "expires_at": result["expires_at"],
+                "status": "waiting"
+            }
+        else:
+            raise HTTPException(status_code=400, detail=result.get("error", "Erro ao criar PIX"))
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating Efi PIX: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao criar PIX")
+
+
+async def verify_efi_webhook_signature(payload: str, signature: str) -> bool:
+    """Verify Efi Bank webhook signature"""
+    webhook_secret = os.getenv("EFI_WEBHOOK_SECRET", "")
+    
+    if not webhook_secret:
+        print("[EFI WEBHOOK] No webhook secret configured")
+        return True  # Allow in development
+    
+    try:
+        expected_signature = hmac.new(
+            webhook_secret.encode(),
+            payload.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        is_valid = hmac.compare_digest(signature, expected_signature)
+        
+        if not is_valid:
+            print(f"[EFI WEBHOOK] Invalid signature")
+        
+        return is_valid
+    except Exception as e:
+        print(f"[EFI WEBHOOK] Error verifying signature: {e}")
+        return False
 
 
 async def is_payment_required():
