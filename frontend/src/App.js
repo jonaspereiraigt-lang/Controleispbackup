@@ -8867,91 +8867,187 @@ const ProviderDashboard = ({ onLogout }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Aceite de Termos - Primeiro Login */}
-      <Dialog open={showTermsModal} onOpenChange={(open) => !acceptingTerms && setShowTermsModal(open)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-              <FileText className="w-6 h-6 text-purple-600" />
-              Bem-vindo ao ControleIsp!
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-purple-900 mb-3">
-                🎉 Seu cadastro foi realizado com sucesso!
-              </h3>
-              <p className="text-gray-700 mb-4">
-                Para começar a usar o sistema, você precisa aceitar nossos termos de uso e concordar com as condições do plano de assinatura.
-              </p>
-              
-              <div className="bg-white rounded-lg p-4 border border-purple-200">
-                <h4 className="font-semibold text-purple-800 mb-2">📋 Detalhes do seu Plano:</h4>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">✓</span>
-                    <span><strong>12 parcelas automáticas</strong> serão geradas ao aceitar os termos</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">✓</span>
-                    <span><strong>3 primeiras parcelas promocionais:</strong> R$ 99,90/mês</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">✓</span>
-                    <span><strong>Demais parcelas:</strong> R$ 199,90/mês</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-600 font-bold">ℹ</span>
-                    <span><strong>Primeira parcela proporcional</strong> aos dias até o vencimento</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-600 font-bold">📅</span>
-                    <span>Vencimento sempre no <strong>dia {providerInfo?.due_day || '10'}</strong> de cada mês</span>
-                  </li>
-                </ul>
+      {/* Tela de Bloqueio - Aceite de Termos (Primeiro Login) */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-50 bg-gray-900 bg-opacity-95 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+            {/* Header com Gradiente */}
+            <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 p-8 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-white opacity-10">
+                <div className="absolute inset-0" style={{
+                  backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.3) 0%, transparent 50%)'
+                }}></div>
+              </div>
+              <div className="relative z-10">
+                <div className="inline-block bg-white bg-opacity-20 rounded-full p-4 mb-4">
+                  <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h1 className="text-4xl font-bold text-white mb-2">🎉 Bem-vindo ao ControleIsp!</h1>
+                <p className="text-purple-100 text-lg">Seu cadastro foi realizado com sucesso</p>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-60 overflow-y-auto">
-              <h4 className="font-semibold mb-2">Termos de Uso - ControleIsp</h4>
-              <div className="text-sm text-gray-700 space-y-2">
-                <p>Ao aceitar estes termos, você concorda com:</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>Utilizar o sistema apenas para fins legítimos de gestão de clientes</li>
-                  <li>Manter seus dados de acesso seguros e não compartilhar com terceiros</li>
-                  <li>Pagar as mensalidades nos vencimentos estabelecidos</li>
-                  <li>Respeitar a Lei Geral de Proteção de Dados (LGPD) no tratamento de informações</li>
-                  <li>Não utilizar o sistema para práticas abusivas ou ilegais de cobrança</li>
-                  <li>Aceitar que o não pagamento pode resultar em bloqueio temporário da conta</li>
-                </ul>
-                <p className="mt-3 font-medium">
-                  As parcelas serão geradas automaticamente e estarão disponíveis na seção "Meu Financeiro".
+            {/* Conteúdo */}
+            <div className="p-8 space-y-6">
+              {/* Mensagem de Boas-Vindas */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-6">
+                <h2 className="text-2xl font-bold text-green-800 mb-3 flex items-center gap-2">
+                  <span className="text-3xl">🎁</span>
+                  Oferta Especial de Boas-Vindas!
+                </h2>
+                <p className="text-gray-700 text-lg mb-4">
+                  Para começar a usar o sistema, precisamos que você aceite nossos termos de uso. 
+                  Ao aceitar, você terá <strong className="text-green-700">acesso imediato</strong> ao sistema e seu plano de assinatura será ativado automaticamente!
                 </p>
+              </div>
+
+              {/* Detalhes do Plano */}
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-300 rounded-xl p-6">
+                <h3 className="text-xl font-bold text-purple-900 mb-4 flex items-center gap-2">
+                  <span className="text-2xl">💳</span>
+                  Seu Plano de Assinatura
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-4 border-2 border-purple-200">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-purple-600 rounded-full p-2 mt-1">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">12 Parcelas Automáticas</p>
+                        <p className="text-sm text-gray-600">Geradas assim que você aceitar os termos</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border-2 border-green-200">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-green-600 rounded-full p-2 mt-1">
+                        <span className="text-white font-bold">🎁</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">3 Meses Promocionais</p>
+                        <p className="text-sm text-gray-600">Apenas <strong className="text-green-700">R$ 99,90/mês</strong></p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-blue-600 rounded-full p-2 mt-1">
+                        <span className="text-white font-bold">💰</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Valor Integral</p>
+                        <p className="text-sm text-gray-600">Após período promocional: R$ 199,90/mês</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border-2 border-indigo-200">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-indigo-600 rounded-full p-2 mt-1">
+                        <span className="text-white font-bold">📅</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Vencimento Escolhido</p>
+                        <p className="text-sm text-gray-600">Todo dia <strong className="text-indigo-700">{providerInfo?.due_day || '10'}</strong> do mês</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                  <p className="text-sm text-yellow-800 flex items-start gap-2">
+                    <span className="text-lg">💡</span>
+                    <span><strong>Primeira parcela proporcional:</strong> Você pagará apenas pelos dias até o primeiro vencimento!</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Termos de Uso */}
+              <div className="bg-gray-50 border-2 border-gray-300 rounded-xl p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="text-2xl">📜</span>
+                  Termos de Uso do Sistema
+                </h3>
+                <div className="bg-white rounded-lg p-4 max-h-64 overflow-y-auto border border-gray-200">
+                  <div className="text-sm text-gray-700 space-y-3">
+                    <p className="font-semibold text-gray-900">Ao aceitar estes termos, você concorda com:</p>
+                    <ul className="space-y-2 ml-4">
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold mt-1">•</span>
+                        <span>Utilizar o sistema apenas para fins legítimos de gestão de clientes negativados</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold mt-1">•</span>
+                        <span>Manter seus dados de acesso seguros e não compartilhar com terceiros</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold mt-1">•</span>
+                        <span>Pagar as mensalidades nos vencimentos estabelecidos para manter acesso ao sistema</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold mt-1">•</span>
+                        <span>Respeitar a Lei Geral de Proteção de Dados (LGPD) no tratamento de informações dos clientes</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold mt-1">•</span>
+                        <span>Não utilizar o sistema para práticas abusivas, ilegais ou de cobrança vexatória</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold mt-1">•</span>
+                        <span>Aceitar que o não pagamento resultará em bloqueio temporário após 3 dias do vencimento</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-purple-600 font-bold mt-1">•</span>
+                        <span>As informações cadastradas são de sua responsabilidade e devem ser verdadeiras</span>
+                      </li>
+                    </ul>
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <p className="font-medium text-gray-900">
+                        📋 <strong>Importante:</strong> Suas 12 parcelas serão geradas automaticamente e estarão disponíveis 
+                        na seção "Meu Financeiro" para consulta e pagamento a qualquer momento.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão de Aceite */}
+              <div className="flex flex-col items-center gap-4 pt-4">
+                <Button 
+                  onClick={handleAcceptTerms} 
+                  disabled={acceptingTerms}
+                  className="w-full max-w-md h-16 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                >
+                  {acceptingTerms ? (
+                    <>
+                      <span className="animate-spin mr-3 text-2xl">⏳</span>
+                      Gerando suas parcelas de boas-vindas...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-3 text-2xl">✅</span>
+                      Aceito os Termos - Liberar Meu Acesso Agora!
+                    </>
+                  )}
+                </Button>
+                
+                {!acceptingTerms && (
+                  <p className="text-sm text-gray-500 text-center max-w-md">
+                    Ao clicar no botão acima, você confirma que leu e concorda com todos os termos de uso do sistema.
+                  </p>
+                )}
               </div>
             </div>
           </div>
-
-          <DialogFooter className="flex gap-2">
-            <Button 
-              onClick={handleAcceptTerms} 
-              disabled={acceptingTerms}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
-            >
-              {acceptingTerms ? (
-                <>
-                  <span className="animate-spin mr-2">⏳</span>
-                  Gerando Parcelas...
-                </>
-              ) : (
-                <>
-                  ✅ Aceitar Termos e Gerar Minhas Parcelas
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
       
       {/* Rodapé */}
       <footer className="text-gray-700 py-4 mt-8">
