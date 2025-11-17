@@ -78,7 +78,7 @@ class BackendTester:
             provider_data = {
                 "name": "Provedor Teste Efi",
                 "nome_fantasia": "Efi Test Provider",
-                "email": f"teste.efi.{int(time.time())}@example.com",
+                "email": f"teste.efi.{int(time.time())}.{hash(str(time.time()))%10000}@example.com",
                 "password": "senha123",
                 "cnpj": "11.222.333/0001-81",
                 "cpf": "123.456.789-00",
