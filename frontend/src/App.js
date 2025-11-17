@@ -8718,7 +8718,18 @@ const ProviderDashboard = ({ onLogout }) => {
                             }}
                             className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 font-medium"
                           >
-                            📋 Copiar Código
+                            📋 Copiar Código de Barras
+                          </button>
+                        )}
+                        {payment.qr_code && (
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(payment.qr_code);
+                              alert('Código PIX copiado!');
+                            }}
+                            className="px-4 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 font-medium"
+                          >
+                            💳 Copiar Código PIX
                           </button>
                         )}
                       </div>
