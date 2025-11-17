@@ -6273,11 +6273,12 @@ const ProviderDashboard = ({ onLogout }) => {
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {/* Botão Novo Cliente - Lado Esquerdo */}
             <div className="flex gap-4">
-              <Dialog open={showCreateClient} onOpenChange={setShowCreateClient}>
-                <DialogTrigger asChild>
+              {isBlocked ? (
+                <div className="relative">
                   <Button 
                     size="lg"
-                    className="relative bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold border-2 border-red-500 px-8 py-4 rounded-lg" 
+                    disabled
+                    className="relative bg-gray-400 cursor-not-allowed text-white shadow-lg px-8 py-4 rounded-lg opacity-60" 
                     data-testid="add-client-button"
                   >
                     <div className="flex items-center">
@@ -6286,11 +6287,31 @@ const ProviderDashboard = ({ onLogout }) => {
                       </div>
                       <span className="text-lg">✨ Novo Cliente</span>
                     </div>
-                    {/* Glow effect */}
-                    <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-red-700 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
                   </Button>
-                </DialogTrigger>
-              </Dialog>
+                  <div className="absolute -top-12 left-0 bg-red-600 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap">
+                    ⚠️ Acesso bloqueado - Pague suas faturas em "Meu Financeiro"
+                  </div>
+                </div>
+              ) : (
+                <Dialog open={showCreateClient} onOpenChange={setShowCreateClient}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      size="lg"
+                      className="relative bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold border-2 border-red-500 px-8 py-4 rounded-lg" 
+                      data-testid="add-client-button"
+                    >
+                      <div className="flex items-center">
+                        <div className="bg-white bg-opacity-20 rounded-full p-1 mr-3">
+                          <UserPlus className="w-5 h-5" />
+                        </div>
+                        <span className="text-lg">✨ Novo Cliente</span>
+                      </div>
+                      {/* Glow effect */}
+                      <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-red-700 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
+                    </Button>
+                  </DialogTrigger>
+                </Dialog>
+              )}
             </div>
             
             <div className="flex-1">
