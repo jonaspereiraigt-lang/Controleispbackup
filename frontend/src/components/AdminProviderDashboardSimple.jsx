@@ -475,16 +475,24 @@ const AdminProviderDashboardSimple = () => {
                         <div className="flex gap-2">
                           <button
                             onClick={async () => {
-                              if (window.confirm(`Gerar Boleto para ${selectedProvider.name}?\n\nValor: R$ ${selectedProvider.plan_value || 199.00}`)) {
+                              const installments = selectedProvider.installments || 1;
+                              const amount = selectedProvider.plan_value || 0;
+                              const total = installments * amount;
+                              
+                              if (window.confirm(`Gerar ${installments} Boleto(s) para ${selectedProvider.name}?\n\n${installments}x R$ ${amount.toFixed(2)} = R$ ${total.toFixed(2)}\n\nVencimentos mensais (1º mês após contratação)`)) {
                                 try {
                                   setLoading(true);
                                   const token = localStorage.getItem('token');
                                   await axios.post(
                                     `${API}/admin/providers/${selectedProvider.id}/generate-financial`,
-                                    { type: 'boleto', amount: selectedProvider.plan_value || 199.00 },
+                                    { 
+                                      type: 'boleto', 
+                                      amount: amount,
+                                      installments: installments
+                                    },
                                     { headers: { Authorization: `Bearer ${token}` } }
                                   );
-                                  alert('✅ Boleto gerado com sucesso!');
+                                  alert(`✅ ${installments} boleto(s) gerado(s) com sucesso!`);
                                   loadProviderPayments(selectedProvider.id);
                                 } catch (error) {
                                   console.error('Erro:', error);
@@ -497,7 +505,7 @@ const AdminProviderDashboardSimple = () => {
                             disabled={loading}
                             className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                           >
-                            📄 Gerar Boleto
+                            📄 Gerar Boletos
                           </button>
                           <button
                             onClick={() => loadProviderPayments(selectedProvider.id)}
