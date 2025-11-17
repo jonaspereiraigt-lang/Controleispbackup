@@ -56,7 +56,7 @@ class FinancialTester:
             self.mongo_client = MongoClient(MONGO_URL)
             self.db = self.mongo_client[DB_NAME]
             # Test connection
-            self.db.admin.command('ping')
+            self.mongo_client.admin.command('ping')
             self.log_result("Database Connection", True, "Successfully connected to MongoDB")
             return True
         except Exception as e:
