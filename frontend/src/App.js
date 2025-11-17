@@ -2665,57 +2665,7 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
-  // Funções do sistema de pagamentos
-  const loadSystemSettings = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${API}/admin/system/settings`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSystemSettings(response.data);
-    } catch (error) {
-      console.error("Erro ao carregar configurações do sistema:", error);
-    }
-  };
-
-  const handleTogglePaymentSystem = async () => {
-    if (!checkTokenValidity()) {
-      return;
-    }
-
-    const currentStatus = systemSettings.payment_required ? "ATIVO" : "DESATIVADO";
-    const newStatus = systemSettings.payment_required ? "DESATIVAR" : "ATIVAR";
-    
-    const confirmMessage = `Tem certeza que deseja ${newStatus} o sistema de pagamentos?\n\nStatus atual: ${currentStatus}\nNovo status: ${newStatus === "ATIVAR" ? "ATIVO (cobrança obrigatória)" : "DESATIVADO (sistema gratuito)"}`;
-    
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
-    setTogglingPayment(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(`${API}/admin/system/toggle-payment`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      toast.success(response.data.message);
-      loadSystemSettings(); // Recarregar configurações
-      
-    } catch (error) {
-      console.error("Erro ao alterar sistema de pagamento:", error);
-      if (error.response?.status === 401) {
-        toast.error("Token inválido. Faça login novamente.");
-        localStorage.removeItem("token");
-        localStorage.removeItem("userType");
-        localStorage.removeItem("userName");
-      } else {
-        toast.error("Erro ao alterar sistema de pagamento: " + (error.response?.data?.detail || "Erro desconhecido"));
-      }
-    } finally {
-      setTogglingPayment(false);
-    }
-  };
+  // Funções do sistema de pagamentos - REMOVIDAS (sistema não é mais gratuito)
 
   // Provider management functions
 
