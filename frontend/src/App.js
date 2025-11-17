@@ -2928,6 +2928,15 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
             </div>
             
             <div className="flex items-center gap-3">
+              {/* Botão de Gestão de Provedores */}
+              <Button 
+                onClick={() => setShowProviderManagement(true)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Building2 className="w-4 h-4 mr-2" />
+                Provedores
+              </Button>
+              
               {/* Botão de Notificações */}
               <Button 
                 onClick={() => setShowNotificationModal(true)}
