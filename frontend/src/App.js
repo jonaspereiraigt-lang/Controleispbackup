@@ -14,7 +14,7 @@ import { Textarea } from "./components/ui/textarea";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { Shield, Users, UserPlus, Building2, Phone, Mail, MapPin, DollarSign, Calendar, LogOut, FileText, Star, Search, AlertTriangle, AlertCircle, User, ChevronRight, Target, Database, Clock, Award, MessageCircle, CheckCircle, Bell, Plus, Edit3, Trash2, Info, Eye, EyeOff, Settings, Wifi, RefreshCw } from "lucide-react";
-import AdminProviderDashboard from "./components/AdminProviderDashboard";
+import AdminProviderDashboardSimple from "./components/AdminProviderDashboardSimple";
 import "./App.css";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
