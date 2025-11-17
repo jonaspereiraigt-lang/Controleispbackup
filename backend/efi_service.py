@@ -62,8 +62,8 @@ class EfiPaymentService:
             # Calculate due date
             due_date = (datetime.now() + timedelta(days=due_days)).strftime("%Y-%m-%d")
             
-            # Prepare charge data
-            body = {
+            # Step 1: Create the charge first (without payment method)
+            charge_body = {
                 "items": [{
                     "name": "ControleIsp - Mensalidade do Sistema",
                     "value": int(amount * 100),  # Convert to cents
@@ -72,7 +72,32 @@ class EfiPaymentService:
                 "metadata": {
                     "custom_id": provider_data.get("provider_id", ""),
                     "notification_url": os.getenv("WEBHOOK_URL", "https://admin-isp.preview.emergentagent.com/api/webhook/efi")
-                },
+                }
+            }
+            
+            # Create charge via Efi API
+            logger.info(f"Creating boleto charge for provider: {provider_data.get('name')}")
+            logger.info(f"Step 1 - Charge body: {charge_body}")
+            
+            response = self.gn.create_charge(body=charge_body)
+            
+            if not (isinstance(response, dict) and response.get("code") == 200):
+                logger.error(f"Failed to create charge: {response}")
+                return {
+                    "success": False,
+                    "error": "Erro ao criar cobrança"
+                }
+            
+            charge_id = response.get("data", {}).get("charge_id")
+            if not charge_id:
+                logger.error(f"No charge_id in response: {response}")
+                return {
+                    "success": False,
+                    "error": "Erro ao obter ID da cobrança"
+                }
+            
+            # Step 2: Add payment method (boleto)
+            payment_body = {
                 "payment": {
                     "banking_billet": {
                         "expire_at": due_date,
@@ -96,11 +121,11 @@ class EfiPaymentService:
                 }
             }
             
-            # Create charge via Efi API
-            logger.info(f"Creating boleto charge for provider: {provider_data.get('name')}")
-            logger.info(f"Request body: {body}")
+            logger.info(f"Step 2 - Payment body: {payment_body}")
             
-            response = self.gn.create_charge(body=body)
+            # Add payment method to the charge
+            params = {"id": charge_id}
+            response = self.gn.pay_charge(params=params, body=payment_body)
             
             logger.info(f"Efi response type: {type(response)}")
             logger.info(f"Efi response: {response}")
