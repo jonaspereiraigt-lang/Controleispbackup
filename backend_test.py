@@ -151,12 +151,16 @@ class BackendTester:
                     test_provider = all_providers[0]
                     provider_id = test_provider.get("id")
                     
-                    # Update provider with valid data
+                    # Update provider with valid data and known password
+                    import hashlib
+                    password_hash = hashlib.sha256("123456".encode('utf-8')).hexdigest()
+                    
                     self.db.providers.update_one(
                         {"id": provider_id},
                         {"$set": {
                             "name": "Test Provider",
                             "email": "test@provider.com",
+                            "password_hash": password_hash,
                             "is_active": True,
                             "is_blocked": False
                         }}
