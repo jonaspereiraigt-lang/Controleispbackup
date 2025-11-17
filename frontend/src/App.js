@@ -1248,7 +1248,8 @@ const Login = ({ onLogin }) => {
     id_front_photo: null,
     id_back_photo: null,
     holding_id_photo: null,
-    contract_accepted: false
+    contract_accepted: false,
+    due_day: 10  // Default: dia 10
   });
   
   // Estados de logo removidos - identificação por nome fantasia
