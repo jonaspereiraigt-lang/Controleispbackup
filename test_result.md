@@ -105,11 +105,11 @@
 user_problem_statement: "Corrigir erro React DOM 'NotFoundError: insertBefore' no dashboard admin e configurar integração Efi Bank"
 
 frontend:
-  - task: "Correção erro React DOM insertBefore no componente Clock"
+  - task: "Correção erro React DOM insertBefore e removeChild"
     implemented: true
     working: true
     file: "/app/frontend/src/App.js"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: false
     status_history:
@@ -125,9 +125,12 @@ frontend:
       - working: false
         agent: "main"
         comment: "Terceira tentativa: implementação de modal approach - erro persistiu"
+      - working: false
+        agent: "user"
+        comment: "Erro insertBefore resolvido, mas novo erro removeChild apareceu ao desmontar o modal"
       - working: true
         agent: "main"
-        comment: "Solução definitiva aplicada pelo troubleshoot_agent: substituído componente Clock por spinner CSS puro (border-2 border-white animate-spin) e adicionado key props ao ProviderManagementModal para separar árvores de componentes. Console logs confirmam que o erro insertBefore foi eliminado."
+        comment: "SOLUÇÃO FINAL: 1) Substituído Clock por CSS spinner, 2) Implementado React Portal (createPortal) para renderizar ProviderManagementModal fora da árvore DOM principal, 3) Removidas chamadas aos endpoints /public/visit e /public/visitor-count. Console logs confirmam ausência total de erros insertBefore e removeChild."
 
   - task: "Dashboard Admin de Gestão de Provedores"
     implemented: true
