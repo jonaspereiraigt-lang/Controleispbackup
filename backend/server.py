@@ -1139,6 +1139,24 @@ async def accept_terms(current_user=Depends(get_current_provider)):
         if due_day and not financial_generated:
             result = await generate_automatic_installments(provider_id, due_day)
             
+            # Check if generation was successful
+            if not result.get("success"):
+                # Rollback: Mark terms as not accepted so they can try again
+                await db.providers.update_one(
+                    {"id": provider_id},
+                    {"$set": {
+                        "terms_accepted": False,
+                        "first_login_completed": False,
+                        "financial_generated": False
+                    }}
+                )
+                
+                error_msg = result.get("error", "Erro desconhecido ao gerar parcelas")
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Termos aceitos, mas não foi possível gerar as parcelas: {error_msg}"
+                )
+            
             return {
                 "success": True,
                 "message": "Termos aceitos e parcelas geradas com sucesso!",
