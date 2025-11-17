@@ -319,7 +319,7 @@ class FinancialTester:
         """Check payments collection in database directly - DIAGNOSTIC TEST"""
         print("🗄️ Checking Database Payments Collection...")
         
-        if not self.db:
+        if self.db is None:
             self.log_result("Database Payments Check", False, "No database connection available")
             return False
         
