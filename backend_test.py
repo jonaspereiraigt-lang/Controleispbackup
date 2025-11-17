@@ -52,6 +52,46 @@ class BackendTester:
             print(f"   Details: {details}")
         print()
     
+    def create_admin_if_needed(self):
+        """Create admin using the create_admin.py script if needed"""
+        print("👤 Creating Admin if needed...")
+        
+        try:
+            # First try to login to see if admin exists
+            response = requests.post(
+                f"{BACKEND_URL}/auth/admin/login",
+                json={
+                    "username": ADMIN_USERNAME,
+                    "password": ADMIN_PASSWORD
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                self.log_result("Admin Check", True, "Admin already exists")
+                return True
+            
+            # Admin doesn't exist, create it
+            print("   Admin not found, creating...")
+            result = subprocess.run(
+                ["python3", "/app/backend/create_admin.py"],
+                cwd="/app/backend",
+                capture_output=True,
+                text=True,
+                env=dict(os.environ, MONGO_URL=MONGO_URL)
+            )
+            
+            if result.returncode == 0:
+                self.log_result("Admin Creation", True, "Admin created successfully")
+                return True
+            else:
+                self.log_result("Admin Creation", False, f"Failed to create admin: {result.stderr}")
+                return False
+                
+        except Exception as e:
+            self.log_result("Admin Creation", False, f"Error creating admin: {str(e)}")
+            return False
+
     def admin_login(self):
         """Test admin login and get token"""
         print("🔐 Testing Admin Login...")
