@@ -187,9 +187,7 @@ metadata:
 test_plan:
   current_focus:
     - "Dashboard Admin de Gestão de Provedores (Frontend)"
-    - "Endpoints CRUD Admin de Provedores (Backend)"
-  stuck_tasks:
-    - "Integração Efi Bank para geração PIX/Boleto (aguardando credenciais do usuário)"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
