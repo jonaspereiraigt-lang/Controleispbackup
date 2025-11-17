@@ -17,7 +17,7 @@ def hash_password(password: str) -> str:
 async def create_admin():
     # Conectar ao MongoDB
     client = AsyncIOMotorClient(MONGO_URL)
-    db = client.get_default_database()
+    db = client[os.environ.get("DB_NAME", "test_db")]
     
     # Dados do admin
     admin_username = "admin"
