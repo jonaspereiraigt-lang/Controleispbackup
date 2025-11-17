@@ -165,7 +165,7 @@ backend:
 
   - task: "Endpoint Admin Generate Financial"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 1
     priority: "high"
@@ -174,6 +174,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "PROBLEMA CRÍTICO IDENTIFICADO: O endpoint /admin/providers/{provider_id}/generate-financial está gerando pagamentos via Efi Bank com sucesso (logs mostram charges 44850953, 44850954 criados), mas NÃO está salvando os registros na collection 'payments' do MongoDB. Por isso os pagamentos não aparecem em /provider/my-payments nem em /admin/providers/{id}/payments. A integração Efi funciona, mas falta persistir os dados no banco."
+      - working: true
+        agent: "testing"
+        comment: "PROBLEMA RESOLVIDO: Após investigação detalhada, descobri que o endpoint estava salvando os pagamentos corretamente no banco (6 pagamentos encontrados). O problema real era no endpoint /provider/my-payments que estava falhando com erro 500 devido a um bug na comparação de datas timezone-aware vs naive. CORREÇÃO APLICADA: Corrigido parsing de expires_at no endpoint /provider/my-payments (linha 4798-4802 em server.py) para lidar corretamente com diferentes formatos de data e timezone. TESTES CONFIRMAM: Admin pode gerar financeiro ✅, Admin vê pagamentos na aba Financeiro ✅, Provedor vê pagamentos em Meu Financeiro ✅."
 
   - task: "Endpoints de Consulta de Pagamentos"
     implemented: true
@@ -186,6 +189,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "ENDPOINTS DE CONSULTA FUNCIONANDO: 1) GET /provider/my-payments: Funciona corretamente, busca na collection 'payments', 2) GET /admin/providers/{id}/payments: Funciona corretamente, busca na collection 'payments'. Ambos retornam arrays vazios porque não há registros salvos na collection (0 documentos encontrados no banco)."
+      - working: true
+        agent: "testing"
+        comment: "ENDPOINTS TOTALMENTE FUNCIONAIS: Após correção do bug de timezone no /provider/my-payments, ambos endpoints funcionam perfeitamente: 1) GET /provider/my-payments: Retorna 6 pagamentos com sucesso, incluindo status de bloqueio do provedor, 2) GET /admin/providers/{id}/payments: Retorna 6 pagamentos corretamente. Ambos endpoints mostram os mesmos payment_ids, confirmando consistência dos dados."
 
 metadata:
   created_by: "main_agent"
