@@ -1116,7 +1116,7 @@ const LandingPage = () => {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_controleisp-debt/artifacts/f07p2k2n_b833d669-8080-47f4-9e03-87fe27ffa1df.jpg"
+                  src="/logo-controleisp.jpg"
                   alt="ControleIsp"
                   className="w-12 h-12 rounded-lg object-cover"
                 />
