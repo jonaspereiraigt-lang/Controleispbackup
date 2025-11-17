@@ -3959,6 +3959,12 @@ const ProviderDashboard = ({ onLogout }) => {
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  
+  // Financial modal states
+  const [showFinancialModal, setShowFinancialModal] = useState(false);
+  const [myPayments, setMyPayments] = useState([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   // Edit phone states
   const [showEditPhone, setShowEditPhone] = useState(false);
