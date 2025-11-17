@@ -562,31 +562,53 @@ const AdminProviderDashboardSimple = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filteredProviders.map((provider, idx) => (
-                    <tr key={provider.id} onClick={() => setSelectedProvider(provider)}
-                      className={`hover:bg-gray-50 cursor-pointer ${selectedProvider?.id === provider.id ? 'bg-blue-50' : ''}`}>
-                      <td className="px-6 py-4 text-sm">{idx + 1}</td>
-                      <td className="px-6 py-4 text-sm font-medium">{provider.name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{provider.email}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{provider.cnpj || '-'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {provider.city ? `${provider.city}/${provider.state}` : '-'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          provider.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  {filteredProviders.map((provider, idx) => {
+                    const needsFinancial = !provider.financial_generated;
+                    return (
+                      <tr key={provider.id} onClick={() => setSelectedProvider(provider)}
+                        className={`hover:bg-gray-50 cursor-pointer ${
+                          selectedProvider?.id === provider.id ? 'bg-blue-50' :
+                          needsFinancial ? 'bg-yellow-50 border-l-4 border-yellow-500' : ''
                         }`}>
-                          {provider.is_active ? 'Ativo' : 'Bloqueado'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button onClick={(e) => { e.stopPropagation(); handleEditProvider(provider); }}
-                          className="text-blue-600 hover:text-blue-800">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        <td className="px-6 py-4 text-sm">
+                          {idx + 1}
+                          {needsFinancial && <span className="ml-2 text-yellow-600">⚠️</span>}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          {provider.name}
+                          {needsFinancial && (
+                            <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+                              Pendente Financeiro
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{provider.email}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{provider.cnpj || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {provider.city ? `${provider.city}/${provider.state}` : '-'}
+                        </td>
+                        <td className="px-6 py-4">
+                          {needsFinancial ? (
+                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                              Aguardando Financeiro
+                            </span>
+                          ) : (
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                              provider.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {provider.is_active ? 'Ativo' : 'Bloqueado'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button onClick={(e) => { e.stopPropagation(); handleEditProvider(provider); }}
+                            className="text-blue-600 hover:text-blue-800">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
               {filteredProviders.length === 0 && (
