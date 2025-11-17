@@ -77,6 +77,7 @@ const AdminProviderDashboardSimple = () => {
     if (paymentFilter === 'pago') return selectedProviderPayments.filter(p => p.status === 'paid');
     if (paymentFilter === 'aberto') return selectedProviderPayments.filter(p => p.status === 'pending' && !isOverdue(p));
     if (paymentFilter === 'atrasado') return selectedProviderPayments.filter(p => p.status === 'pending' && isOverdue(p));
+    if (paymentFilter === 'cancelado') return selectedProviderPayments.filter(p => p.status === 'canceled' || p.status === 'cancelled');
     return selectedProviderPayments;
   };
 
