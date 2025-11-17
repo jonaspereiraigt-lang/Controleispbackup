@@ -5077,6 +5077,74 @@ async def get_provider_info(current_user=Depends(get_current_provider)):
     }
 
 
+async def check_provider_payment_status(provider_id: str):
+    """Check provider payment status and update blocking status in database"""
+    try:
+        # Get all payments for this provider
+        payments = await db.payments.find({"provider_id": provider_id}).to_list(100)
+        
+        today = datetime.now(timezone.utc).date()
+        
+        # Check if provider is blocked (has overdue payments)
+        is_blocked = False
+        overdue_payment_id = None
+        for payment in payments:
+            if payment.get("status") == "pending":
+                try:
+                    # Parse expires_at
+                    expires_at_str = payment.get("expires_at", "")
+                    if isinstance(expires_at_str, str) and expires_at_str:
+                        try:
+                            expiry_date = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00')).date()
+                        except ValueError:
+                            expiry_date = datetime.strptime(expires_at_str[:10], "%Y-%m-%d").date()
+                    else:
+                        continue
+                    
+                    # Block if 3+ days overdue (3 days after due date)
+                    if (today - expiry_date).days >= 3:
+                        is_blocked = True
+                        overdue_payment_id = payment.get("payment_id")
+                        break
+                except Exception as e:
+                    print(f"Error parsing date: {e}")
+                    continue
+        
+        # Update provider's is_blocked status in database
+        if is_blocked:
+            await db.providers.update_one(
+                {"id": provider_id},
+                {"$set": {
+                    "is_blocked": True,
+                    "blocked_at": datetime.now(timezone.utc).isoformat(),
+                    "blocked_reason": f"Pagamento vencido há mais de 3 dias (ID: {overdue_payment_id})"
+                }}
+            )
+        else:
+            # Unblock if all payments are up to date
+            await db.providers.update_one(
+                {"id": provider_id},
+                {"$set": {
+                    "is_blocked": False,
+                    "blocked_at": None,
+                    "blocked_reason": None
+                }}
+            )
+        
+        return {
+            "success": True,
+            "is_blocked": is_blocked,
+            "overdue_payment_id": overdue_payment_id
+        }
+        
+    except Exception as e:
+        print(f"Error checking provider payment status: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
 @api_router.get("/provider/my-payments")
 async def get_my_payments(current_user=Depends(get_current_provider)):
     """Get all payments for the logged provider with blocking status"""
