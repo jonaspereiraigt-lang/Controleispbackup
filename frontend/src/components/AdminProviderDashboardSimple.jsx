@@ -394,34 +394,76 @@ const AdminProviderDashboardSimple = () => {
 
               {activeTab === 'financeiro' && (
                 <div className="space-y-6">
-                  {/* Informações do Plano */}
+                  {/* Configuração de Parcelas */}
                   <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                    <h3 className="font-semibold text-blue-900 mb-3">Informações do Plano</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <h3 className="font-semibold text-blue-900 mb-3">Configuração de Parcelas</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Tipo de Plano</label>
-                        <select name="plan_type" value={formData.plan_type} onChange={handleInputChange}
-                          className="w-full px-3 py-2 border rounded">
-                          <option value="mensal">Mensal</option>
-                          <option value="trimestral">Trimestral</option>
-                          <option value="semestral">Semestral</option>
-                          <option value="anual">Anual</option>
-                        </select>
+                        <label className="block text-sm font-medium mb-1">Número de Parcelas</label>
+                        <input 
+                          name="installments" 
+                          type="number" 
+                          min="1" 
+                          max="12" 
+                          value={selectedProvider?.installments || 1}
+                          onChange={(e) => setSelectedProvider(prev => ({...prev, installments: parseInt(e.target.value)}))}
+                          className="w-full px-3 py-2 border rounded" 
+                          placeholder="Ex: 2, 3, 6, 12"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Cada parcela vence 1 mês após a anterior</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Valor (R$)</label>
-                        <input name="plan_value" type="number" step="0.01" value={formData.plan_value}
-                          onChange={handleInputChange} className="w-full px-3 py-2 border rounded" />
+                        <label className="block text-sm font-medium mb-1">Valor da Parcela (R$)</label>
+                        <input 
+                          name="plan_value" 
+                          type="number" 
+                          step="0.01" 
+                          value={selectedProvider?.plan_value || 0}
+                          onChange={(e) => setSelectedProvider(prev => ({...prev, plan_value: parseFloat(e.target.value)}))}
+                          className="w-full px-3 py-2 border rounded"
+                          placeholder="Ex: 199.00"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Valor de cada parcela individual</p>
                       </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between bg-white p-3 rounded border border-blue-300">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Forma de Pagamento</label>
-                        <select name="payment_method" value={formData.payment_method} onChange={handleInputChange}
-                          className="w-full px-3 py-2 border rounded">
-                          <option value="boleto">Boleto</option>
-                          <option value="pix">PIX</option>
-                          <option value="cartao">Cartão</option>
-                        </select>
+                        <p className="text-sm font-medium text-gray-700">
+                          Total: <span className="text-lg font-bold text-blue-700">
+                            R$ {((selectedProvider?.plan_value || 0) * (selectedProvider?.installments || 1)).toFixed(2)}
+                          </span>
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {selectedProvider?.installments || 1}x de R$ {(selectedProvider?.plan_value || 0).toFixed(2)}
+                        </p>
                       </div>
+                      <button
+                        onClick={async () => {
+                          try {
+                            setLoading(true);
+                            const token = localStorage.getItem('token');
+                            await axios.put(
+                              `${API}/admin/providers/${selectedProvider.id}`,
+                              {
+                                installments: selectedProvider.installments || 1,
+                                plan_value: selectedProvider.plan_value || 0
+                              },
+                              { headers: { Authorization: `Bearer ${token}` } }
+                            );
+                            alert('✅ Configurações salvas com sucesso!');
+                            loadProviders();
+                          } catch (error) {
+                            console.error('Erro:', error);
+                            alert('❌ Erro ao salvar: ' + (error.response?.data?.detail || error.message));
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                        disabled={loading}
+                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 font-medium"
+                      >
+                        💾 Salvar Alterações
+                      </button>
                     </div>
                   </div>
 
