@@ -1422,7 +1422,16 @@ async def generate_automatic_installments(provider_id: str, due_day: int):
             await db.payments.insert_one(payment_doc)
             generated_payments.append(payment_doc)
         
-        # Mark provider as financial_generated = True
+        # Check if at least one payment was generated
+        if len(generated_payments) == 0:
+            print(f"❌ ERRO: Nenhuma parcela foi gerada para provider {provider_id}")
+            return {
+                "success": False,
+                "error": "Não foi possível gerar as parcelas. Verifique seus dados cadastrais (CPF, endereço, etc.) e tente novamente.",
+                "payments_generated": 0
+            }
+        
+        # Mark provider as financial_generated = True only if payments were generated
         await db.providers.update_one(
             {"id": provider_id},
             {"$set": {
@@ -1430,6 +1439,8 @@ async def generate_automatic_installments(provider_id: str, due_day: int):
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
+        
+        print(f"✅ {len(generated_payments)} parcelas geradas com sucesso para provider {provider_id}")
         
         return {
             "success": True,
@@ -1442,7 +1453,8 @@ async def generate_automatic_installments(provider_id: str, due_day: int):
         print(f"Error generating automatic installments: {e}")
         return {
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "payments_generated": 0
         }
 
 
