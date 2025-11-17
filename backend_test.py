@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Financial Generation Issue Investigation
-Tests the specific issue where admin-generated financial records are not appearing
-in provider's "Meu Financeiro" or admin's "Financeiro" tab
+Backend Testing Script for Boleto Generation and Link/PDF Fields Verification
+Tests the complete flow of generating boletos and verifying that 'link' and 'pdf' fields
+are correctly returned for provider's "Meu Financeiro" functionality
 """
 
 import requests
@@ -12,11 +12,13 @@ import time
 from datetime import datetime
 import pymongo
 from pymongo import MongoClient
+import subprocess
+import os
 
 # Configuration
 BACKEND_URL = "https://isp-admin-3.preview.emergentagent.com/api"
-ADMIN_USERNAME = "master"
-ADMIN_PASSWORD = "master123"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
 MONGO_URL = "mongodb://localhost:27017"
 DB_NAME = "test_db"
 
