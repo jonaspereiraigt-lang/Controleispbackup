@@ -4747,6 +4747,48 @@ async def get_provider_info(current_user=Depends(get_current_provider)):
     }
 
 
+@api_router.get("/provider/my-payments")
+async def get_my_payments(current_user=Depends(get_current_provider)):
+    """Get all payments for the logged provider with blocking status"""
+    provider_id = current_user["user_id"]
+    
+    try:
+        # Get all payments for this provider
+        payments = await db.payments.find({"provider_id": provider_id}).sort("created_at", -1).to_list(100)
+        
+        # Check if provider is blocked (has overdue payment)
+        is_blocked = False
+        today = datetime.now(timezone.utc)
+        
+        for payment in payments:
+            if payment.get("status") == "pending" and payment.get("expires_at"):
+                expiry_date = datetime.fromisoformat(payment["expires_at"].replace("Z", "+00:00"))
+                # Block if 1+ days overdue
+                if (today - expiry_date).days >= 1:
+                    is_blocked = True
+                    break
+        
+        # Update provider blocked status if needed
+        provider = await db.providers.find_one({"id": provider_id})
+        if provider:
+            current_blocked = provider.get("is_blocked", False)
+            if current_blocked != is_blocked:
+                await db.providers.update_one(
+                    {"id": provider_id},
+                    {"$set": {"is_blocked": is_blocked, "updated_at": today.isoformat()}}
+                )
+        
+        return {
+            "success": True,
+            "payments": payments,
+            "is_blocked": is_blocked
+        }
+        
+    except Exception as e:
+        print(f"Error getting provider payments: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar pagamentos")
+
+
 @api_router.post("/validate/cnpj")
 async def validate_cnpj_endpoint(data: dict):
     """Endpoint para validar e consultar dados de CNPJ"""
