@@ -372,28 +372,167 @@ const AdminProviderDashboardSimple = () => {
               )}
 
               {activeTab === 'financeiro' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-medium mb-1">Tipo de Plano</label>
-                    <select name="plan_type" value={formData.plan_type} onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded">
-                      <option value="mensal">Mensal</option>
-                      <option value="trimestral">Trimestral</option>
-                      <option value="semestral">Semestral</option>
-                      <option value="anual">Anual</option>
-                    </select>
+                <div className="space-y-6">
+                  {/* Informações do Plano */}
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                    <h3 className="font-semibold text-blue-900 mb-3">Informações do Plano</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Tipo de Plano</label>
+                        <select name="plan_type" value={formData.plan_type} onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded">
+                          <option value="mensal">Mensal</option>
+                          <option value="trimestral">Trimestral</option>
+                          <option value="semestral">Semestral</option>
+                          <option value="anual">Anual</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Valor (R$)</label>
+                        <input name="plan_value" type="number" step="0.01" value={formData.plan_value}
+                          onChange={handleInputChange} className="w-full px-3 py-2 border rounded" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Forma de Pagamento</label>
+                        <select name="payment_method" value={formData.payment_method} onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded">
+                          <option value="boleto">Boleto</option>
+                          <option value="pix">PIX</option>
+                          <option value="cartao">Cartão</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                  <div><label className="block text-sm font-medium mb-1">Valor (R$)</label>
-                    <input name="plan_value" type="number" step="0.01" value={formData.plan_value}
-                      onChange={handleInputChange} className="w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div><label className="block text-sm font-medium mb-1">Forma de Pagamento</label>
-                    <select name="payment_method" value={formData.payment_method} onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded">
-                      <option value="boleto">Boleto</option>
-                      <option value="pix">PIX</option>
-                      <option value="cartao">Cartão</option>
-                    </select>
-                  </div>
+
+                  {/* Histórico de Pagamentos */}
+                  {selectedProvider && (
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold text-gray-900 text-lg">Histórico de Pagamentos</h3>
+                        <button
+                          onClick={() => loadProviderPayments(selectedProvider.id)}
+                          disabled={loadingPayments}
+                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {loadingPayments ? 'Carregando...' : 'Atualizar'}
+                        </button>
+                      </div>
+
+                      {loadingPayments ? (
+                        <div className="text-center py-8 text-gray-500">Carregando pagamentos...</div>
+                      ) : payments.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                          Nenhum pagamento encontrado para este provedor
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {payments.map((payment) => (
+                            <div key={payment.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-3 h-3 rounded-full ${
+                                    payment.status === 'paid' ? 'bg-green-500' :
+                                    payment.status === 'pending' ? 'bg-yellow-500' :
+                                    payment.status === 'waiting' ? 'bg-blue-500' :
+                                    'bg-red-500'
+                                  }`} />
+                                  <div>
+                                    <h4 className="font-semibold text-gray-900">
+                                      {payment.payment_method === 'boleto' ? '📄 Boleto Bancário' : '💳 PIX'}
+                                    </h4>
+                                    <p className="text-sm text-gray-500">ID: {payment.payment_id || payment.id}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-lg font-bold text-gray-900">
+                                    R$ {payment.amount ? payment.amount.toFixed(2) : '0.00'}
+                                  </p>
+                                  <span className={`text-xs px-2 py-1 rounded-full ${
+                                    payment.status === 'paid' ? 'bg-green-100 text-green-800' :
+                                    payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                    payment.status === 'waiting' ? 'bg-blue-100 text-blue-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {payment.status === 'paid' ? 'Pago' :
+                                     payment.status === 'pending' ? 'Pendente' :
+                                     payment.status === 'waiting' ? 'Aguardando' :
+                                     'Cancelado'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mb-3">
+                                <div>
+                                  <p className="text-gray-500">Criado em:</p>
+                                  <p className="font-medium">{payment.created_at ? new Date(payment.created_at).toLocaleDateString('pt-BR') : '-'}</p>
+                                </div>
+                                {payment.expires_at && (
+                                  <div>
+                                    <p className="text-gray-500">Expira em:</p>
+                                    <p className="font-medium">{new Date(payment.expires_at).toLocaleDateString('pt-BR')}</p>
+                                  </div>
+                                )}
+                                {payment.paid_at && (
+                                  <div>
+                                    <p className="text-gray-500">Pago em:</p>
+                                    <p className="font-medium">{new Date(payment.paid_at).toLocaleDateString('pt-BR')}</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Ações */}
+                              <div className="flex flex-wrap gap-2 pt-3 border-t">
+                                {payment.status === 'pending' && (
+                                  <button
+                                    onClick={() => handleConfirmPayment(payment.id)}
+                                    className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                                  >
+                                    ✓ Confirmar Recebimento
+                                  </button>
+                                )}
+                                
+                                {payment.payment_method === 'boleto' && payment.link && (
+                                  <button
+                                    onClick={() => handlePrintBoleto(payment)}
+                                    className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                                  >
+                                    🖨️ Imprimir Boleto
+                                  </button>
+                                )}
+                                
+                                {payment.payment_method === 'pix' && payment.qr_code && (
+                                  <button
+                                    onClick={() => handleCopyPix(payment.qr_code)}
+                                    className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
+                                  >
+                                    📋 Copiar PIX
+                                  </button>
+                                )}
+                                
+                                {(payment.status === 'pending' || payment.status === 'waiting') && (
+                                  <button
+                                    onClick={() => handleCancelPayment(payment.id)}
+                                    className="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                                  >
+                                    ✕ Cancelar
+                                  </button>
+                                )}
+
+                                {payment.barcode && (
+                                  <button
+                                    onClick={() => handleCopyPix(payment.barcode)}
+                                    className="px-3 py-1.5 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                                  >
+                                    Copiar Código de Barras
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
