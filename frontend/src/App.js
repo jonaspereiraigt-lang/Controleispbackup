@@ -2918,11 +2918,11 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
     toast.success("WhatsApp aberto com mensagem de cobrança!");
   };
 
-  // Modal fullscreen para gestão de provedores
+  // Modal fullscreen para gestão de provedores usando React Portal
   const ProviderManagementModal = () => {
     if (!showProviderManagement) return null;
     
-    return (
+    const modalContent = (
       <div key="provider-management-modal" className="fixed inset-0 z-50 bg-white">
         <div className="h-full flex flex-col">
           <div className="bg-gray-700 px-6 py-4 flex items-center justify-between shadow-md">
@@ -2940,6 +2940,8 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
         </div>
       </div>
     );
+    
+    return createPortal(modalContent, document.body);
   };
 
   return (
