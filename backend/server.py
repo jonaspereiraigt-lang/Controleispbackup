@@ -3580,6 +3580,10 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
     if not all([provider_data.id_front_photo, provider_data.id_back_photo, provider_data.holding_id_photo]):
         raise HTTPException(status_code=400, detail="É necessário enviar as três fotos de identificação")
     
+    # Validate due_day
+    if provider_data.due_day not in [5, 10, 15, 20, 25]:
+        raise HTTPException(status_code=400, detail="Dia de vencimento deve ser 5, 10, 15, 20 ou 25")
+    
     # Logo removido - identificação por nome fantasia
     
     existing_provider = await db.providers.find_one({
