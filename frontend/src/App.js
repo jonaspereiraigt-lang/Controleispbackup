@@ -1706,7 +1706,7 @@ const Login = ({ onLogin }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="register-password">Senha de Acesso</Label>
                   <Input
@@ -1721,6 +1721,27 @@ const Login = ({ onLogin }) => {
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Você fará login com seu email cadastrado acima
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="register-due-day">Dia de Vencimento das Parcelas *</Label>
+                  <select
+                    id="register-due-day"
+                    name="due_day"
+                    value={registerData.due_day}
+                    onChange={handleRegisterInputChange}
+                    required
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    data-testid="register-due-day-select"
+                  >
+                    <option value={5}>Dia 5</option>
+                    <option value={10}>Dia 10</option>
+                    <option value={15}>Dia 15</option>
+                    <option value={20}>Dia 20</option>
+                    <option value={25}>Dia 25</option>
+                  </select>
+                  <p className="text-xs text-gray-600 mt-1">
+                    💳 Escolha o dia do mês para vencimento das mensalidades
                   </p>
                 </div>
               </div>
