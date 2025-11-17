@@ -425,57 +425,52 @@ class BackendTester:
             self.log_result("Get Providers", False, f"Error getting providers: {str(e)}")
             return False
     
-    def test_admin_generate_financial(self):
-        """Test admin endpoint to generate financial for provider - MAIN TEST"""
-        print("💰 Testing Admin Generate Financial (MAIN TEST)...")
+    def test_generate_financial_boleto_installments(self):
+        """Test admin endpoint to generate boleto financial with 2 installments - MAIN TEST"""
+        print("💰 Testing Generate Financial - Boleto with 2 Installments...")
         
         if not self.test_provider_id:
-            self.log_result("Admin Generate Financial", False, "No test provider ID available")
+            self.log_result("Generate Boleto Installments", False, "No test provider ID available")
             return False
         
         try:
-            # Test both PIX and Boleto
-            for payment_type in ["pix", "boleto"]:
-                print(f"   Testing {payment_type.upper()}...")
+            payment_data = {
+                "type": "boleto",
+                "amount": 199.00,
+                "installments": 2
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/admin/providers/{self.test_provider_id}/generate-financial",
+                json=payment_data,
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
                 
-                payment_data = {
-                    "type": payment_type,
-                    "amount": 199.00
-                }
-                
-                response = self.session.post(
-                    f"{BACKEND_URL}/admin/providers/{self.test_provider_id}/generate-financial",
-                    json=payment_data,
-                    timeout=60
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    payment_info = data.get("payment", {})
-                    
-                    if payment_info.get("success"):
-                        # Store the payment ID for later verification
-                        if payment_type == "pix":
-                            self.generated_payment_id = payment_info.get("charge_id")
-                        
-                        details = {
-                            "type": payment_type,
-                            "charge_id": payment_info.get("charge_id"),
-                            "amount": payment_info.get("amount"),
-                            "status": payment_info.get("status")
-                        }
-                        self.log_result(f"Admin Generate Financial ({payment_type.upper()})", True, f"{payment_type.upper()} generated successfully", details)
+                # Check if response confirms 2 payments were generated
+                if data.get("success") and data.get("payments_generated") == 2:
+                    payments = data.get("payments", [])
+                    if len(payments) == 2:
+                        self.generated_payments = payments
+                        self.log_result("Generate Boleto Installments", True, f"Successfully generated 2 boleto payments", {
+                            "payments_count": len(payments),
+                            "payment_ids": [p.get("charge_id") for p in payments]
+                        })
+                        return True
                     else:
-                        self.log_result(f"Admin Generate Financial ({payment_type.upper()})", False, f"Failed to generate {payment_type}", payment_info)
+                        self.log_result("Generate Boleto Installments", False, f"Expected 2 payments, got {len(payments)}")
                         return False
                 else:
-                    self.log_result(f"Admin Generate Financial ({payment_type.upper()})", False, f"HTTP {response.status_code}", response.text)
+                    self.log_result("Generate Boleto Installments", False, "Response doesn't confirm 2 payments generated", data)
                     return False
-            
-            return True
+            else:
+                self.log_result("Generate Boleto Installments", False, f"HTTP {response.status_code}", response.text)
+                return False
                 
         except Exception as e:
-            self.log_result("Admin Generate Financial", False, f"Error generating financial: {str(e)}")
+            self.log_result("Generate Boleto Installments", False, f"Error generating boleto installments: {str(e)}")
             return False
     
     def test_provider_my_payments(self):
