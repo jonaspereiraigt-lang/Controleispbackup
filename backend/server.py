@@ -1559,12 +1559,21 @@ async def get_providers(current_user=Depends(get_current_user)):
             else:
                 subscription_status = "expired"
         
-        # Create provider stats
+        # Create provider stats - with defensive checks
+        provider_name = provider.get("name")
+        provider_email = provider.get("email")
+        
+        # Skip providers with missing critical data
+        if not provider_name or not provider_email:
+            print(f"⚠️  Skipping provider {provider.get('id')} - missing name or email")
+            print(f"   Name: {provider_name}, Email: {provider_email}")
+            continue
+        
         provider_stat = ProviderStats(
             id=provider["id"],
-            name=provider.get("name", "Sem Nome"),
-            nome_fantasia=provider.get("nome_fantasia", provider.get('name', 'Sem Nome')),
-            email=provider.get("email", "sem-email@example.com"),
+            name=provider_name,
+            nome_fantasia=provider.get("nome_fantasia", provider_name),
+            email=provider_email,
             cnpj=provider.get("cnpj", ""),
             phone=provider.get("phone", ""),
             address=provider.get("address", ""),
