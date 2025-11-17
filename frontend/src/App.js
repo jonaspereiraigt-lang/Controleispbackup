@@ -4272,24 +4272,38 @@ const ProviderDashboard = ({ onLogout }) => {
       });
       
       if (response.data.success) {
-        toast.success(`✅ ${response.data.message}`);
+        // Close modal
         setShowTermsModal(false);
         
-        // Reload payments to show newly generated installments
-        await loadMyPayments();
+        // Show success with confetti effect
+        toast.success('🎉 Bem-vindo ao ControleIsp!', { duration: 3000 });
         
-        // Show success message with details
+        // Show details about generated payments
         if (response.data.payments_generated) {
-          toast.success(
-            `🎉 ${response.data.payments_generated} parcelas geradas! Total: R$ ${response.data.total_amount?.toFixed(2)}`,
-            { duration: 5000 }
-          );
+          setTimeout(() => {
+            toast.success(
+              `✅ ${response.data.payments_generated} parcelas geradas com sucesso!\n💰 Total: R$ ${response.data.total_amount?.toFixed(2)}\n📅 Primeira cobrança: ${new Date(response.data.first_due_date).toLocaleDateString('pt-BR')}`,
+              { duration: 6000 }
+            );
+          }, 500);
+          
+          // Show welcome message
+          setTimeout(() => {
+            toast.success(
+              '🚀 Seu sistema está pronto! Comece cadastrando seus clientes negativados.',
+              { duration: 5000 }
+            );
+          }, 2000);
         }
+        
+        // Reload everything to show the system is now accessible
+        await loadMyPayments();
+        await loadClients();
+        await loadProviderInfo();
       }
     } catch (error) {
       console.error("Erro ao aceitar termos:", error);
       toast.error("Erro ao aceitar termos: " + (error.response?.data?.detail || error.message));
-    } finally {
       setAcceptingTerms(false);
     }
   };
