@@ -814,7 +814,7 @@ class Payment(BaseModel):
 
 
 class PaymentRequest(BaseModel):
-    provider_id: str
+    amount: Optional[float] = 199.00  # Default monthly amount
 
 
 class PasswordResetToken(BaseModel):
