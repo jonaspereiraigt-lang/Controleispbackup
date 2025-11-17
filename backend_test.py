@@ -497,22 +497,43 @@ class BackendTester:
                 payments = response.json()
                 self.log_result("Provider My Payments", True, f"Endpoint working - Found {len(payments)} payments")
                 
-                # Check if our generated payment is in the list
-                if self.generated_payment_id:
-                    found_payment = False
-                    for payment in payments:
-                        if payment.get("payment_id") == self.generated_payment_id or payment.get("charge_id") == self.generated_payment_id:
-                            found_payment = True
-                            break
+                # Verify critical fields are present
+                critical_issues = []
+                for i, payment in enumerate(payments):
+                    payment_id = payment.get("payment_id") or payment.get("charge_id")
                     
-                    if found_payment:
-                        print("   ✅ Generated payment found in provider's payment list")
-                    else:
-                        print("   ❌ Generated payment NOT found in provider's payment list")
-                        print(f"   Looking for payment_id: {self.generated_payment_id}")
-                        print(f"   Found payments: {[p.get('payment_id', p.get('charge_id')) for p in payments]}")
+                    # Check required fields
+                    required_fields = ["link", "pdf", "barcode", "status", "amount", "created_at", "expires_at"]
+                    missing_fields = []
+                    empty_fields = []
+                    
+                    for field in required_fields:
+                        if field not in payment:
+                            missing_fields.append(field)
+                        elif not payment.get(field):
+                            empty_fields.append(field)
+                    
+                    if missing_fields or empty_fields:
+                        critical_issues.append({
+                            "payment_id": payment_id,
+                            "missing_fields": missing_fields,
+                            "empty_fields": empty_fields
+                        })
+                    
+                    # Log payment details
+                    print(f"   Payment {i+1}:")
+                    print(f"     ID: {payment_id}")
+                    print(f"     Link: {'✅' if payment.get('link') else '❌'} {payment.get('link', 'MISSING')}")
+                    print(f"     PDF: {'✅' if payment.get('pdf') else '❌'} {payment.get('pdf', 'MISSING')}")
+                    print(f"     Status: {payment.get('status', 'MISSING')}")
+                    print(f"     Amount: {payment.get('amount', 'MISSING')}")
                 
-                return True
+                if critical_issues:
+                    self.log_result("Provider My Payments - Fields Check", False, f"Critical fields missing/empty in {len(critical_issues)} payments", critical_issues)
+                    return False
+                else:
+                    self.log_result("Provider My Payments - Fields Check", True, "All critical fields present and non-empty")
+                    return True
             else:
                 self.log_result("Provider My Payments", False, f"HTTP {response.status_code}", response.text)
                 return False
