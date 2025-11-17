@@ -12,7 +12,7 @@ from datetime import datetime
 
 # Configuration
 BACKEND_URL = "https://admin-isp.preview.emergentagent.com/api"
-ADMIN_USERNAME = "admin"
+ADMIN_USERNAME = "master"
 ADMIN_PASSWORD = "admin123"
 
 class BackendTester:
