@@ -551,6 +551,14 @@ const AdminProviderDashboardSimple = () => {
                         >
                           Pagos ({selectedProviderPayments.filter(p => p.status === 'paid').length})
                         </button>
+                        <button 
+                          onClick={() => setPaymentFilter('cancelado')}
+                          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                            paymentFilter === 'cancelado' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          Cancelados ({selectedProviderPayments.filter(p => p.status === 'canceled' || p.status === 'cancelled').length})
+                        </button>
                       </div>
 
                       {loadingPayments ? (
