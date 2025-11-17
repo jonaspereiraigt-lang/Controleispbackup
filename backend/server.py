@@ -1212,6 +1212,175 @@ async def reset_password(request: ResetPasswordRequest):
 
 
 # =============================================================================
+# HELPER FUNCTIONS FOR AUTOMATIC PAYMENT GENERATION
+# =============================================================================
+
+def adjust_due_date_for_weekend(due_date: datetime) -> datetime:
+    """
+    Adjust due date if it falls on weekend - postpone to Monday
+    """
+    # 5 = Saturday, 6 = Sunday
+    if due_date.weekday() == 5:  # Saturday
+        due_date = due_date + timedelta(days=2)  # Move to Monday
+    elif due_date.weekday() == 6:  # Sunday
+        due_date = due_date + timedelta(days=1)  # Move to Monday
+    return due_date
+
+
+def calculate_next_due_date(start_date: datetime, due_day: int) -> datetime:
+    """
+    Calculate next due date based on due_day (5, 10, 15, 20, 25)
+    """
+    # Start with next month
+    if start_date.month == 12:
+        next_month = start_date.replace(year=start_date.year + 1, month=1, day=due_day)
+    else:
+        next_month = start_date.replace(month=start_date.month + 1, day=due_day)
+    
+    # If due_day is in current month and hasn't passed, use current month
+    try:
+        current_month_due = start_date.replace(day=due_day)
+        if current_month_due > start_date:
+            return adjust_due_date_for_weekend(current_month_due)
+    except ValueError:
+        # due_day doesn't exist in current month (e.g., day 31 in February)
+        pass
+    
+    return adjust_due_date_for_weekend(next_month)
+
+
+def calculate_proportional_value(start_date: datetime, first_due_date: datetime, full_value: float) -> float:
+    """
+    Calculate proportional value for first installment based on days
+    """
+    days_in_month = 30  # Standard billing cycle
+    days_until_due = (first_due_date - start_date).days
+    
+    if days_until_due <= 0:
+        return full_value
+    
+    # Calculate proportional value
+    proportional = (days_until_due / days_in_month) * full_value
+    return round(proportional, 2)
+
+
+async def generate_automatic_installments(provider_id: str, due_day: int):
+    """
+    Generate 12 automatic installments for a new provider:
+    - 1st: Proportional value (based on days until first due date)
+    - 2nd-3rd: R$ 99.90 (promotional)
+    - 4th-12th: R$ 199.90 (full value)
+    """
+    try:
+        provider = await db.providers.find_one({"id": provider_id})
+        if not provider:
+            raise Exception("Provider not found")
+        
+        start_date = datetime.now(timezone.utc)
+        first_due_date = calculate_next_due_date(start_date, due_day)
+        
+        # Prepare provider data for Efi Bank
+        provider_data = {
+            "provider_id": provider_id,
+            "name": provider.get("name", "Nome do Provedor"),
+            "email": provider.get("email", "email@provedor.com"),
+            "cpf": provider.get("cpf", ""),
+            "phone": provider.get("phone", "")
+        }
+        
+        generated_payments = []
+        
+        # Generate 12 installments
+        for installment_number in range(1, 13):
+            # Calculate due date for this installment
+            if installment_number == 1:
+                due_date = first_due_date
+            else:
+                # Add months to first due date
+                months_to_add = installment_number - 1
+                year_offset = months_to_add // 12
+                month_offset = months_to_add % 12
+                
+                new_year = first_due_date.year + year_offset
+                new_month = first_due_date.month + month_offset
+                
+                if new_month > 12:
+                    new_year += 1
+                    new_month -= 12
+                
+                due_date = first_due_date.replace(year=new_year, month=new_month)
+                due_date = adjust_due_date_for_weekend(due_date)
+            
+            # Determine installment amount
+            if installment_number == 1:
+                # Proportional value
+                amount = calculate_proportional_value(start_date, first_due_date, 99.90)
+            elif installment_number in [2, 3]:
+                # Promotional price
+                amount = 99.90
+            else:
+                # Full price
+                amount = 199.90
+            
+            # Calculate due days from now
+            due_days = (due_date - start_date).days
+            
+            # Create boleto via Efi Bank
+            payment_result = await create_efi_boleto_payment(provider_id, amount, due_days=due_days)
+            
+            if not payment_result.get("success"):
+                print(f"Failed to create installment {installment_number}: {payment_result.get('error')}")
+                continue
+            
+            # Save payment to database
+            payment_doc = {
+                "id": str(uuid.uuid4()),
+                "provider_id": provider_id,
+                "payment_id": str(payment_result.get("charge_id", "")),
+                "payment_method": "boleto",
+                "amount": amount,
+                "installment_number": installment_number,
+                "total_installments": 12,
+                "status": "pending",
+                "link": payment_result.get("link", ""),
+                "pdf": payment_result.get("pdf", ""),
+                "barcode": payment_result.get("barcode", ""),
+                "qr_code": payment_result.get("qr_code", ""),
+                "txid": payment_result.get("txid", ""),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "expires_at": due_date.isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "is_promotional": installment_number in [1, 2, 3]
+            }
+            
+            await db.payments.insert_one(payment_doc)
+            generated_payments.append(payment_doc)
+        
+        # Mark provider as financial_generated = True
+        await db.providers.update_one(
+            {"id": provider_id},
+            {"$set": {
+                "financial_generated": True,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {
+            "success": True,
+            "payments_generated": len(generated_payments),
+            "first_due_date": first_due_date.isoformat(),
+            "total_amount": sum(p["amount"] for p in generated_payments)
+        }
+        
+    except Exception as e:
+        print(f"Error generating automatic installments: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+# =============================================================================
 # EFI BANK PAYMENT FUNCTIONS
 # =============================================================================
 
