@@ -136,6 +136,14 @@ class EfiPaymentService:
                 
                 logger.info(f"Boleto charge created successfully: {charge_id}")
                 
+                # Safely get PDF URL
+                pdf_data = data.get("pdf")
+                pdf_url = ""
+                if isinstance(pdf_data, dict):
+                    pdf_url = pdf_data.get("charge", "")
+                elif isinstance(pdf_data, str):
+                    pdf_url = pdf_data
+                
                 return {
                     "success": True,
                     "charge_id": charge_id,
@@ -143,7 +151,7 @@ class EfiPaymentService:
                     "total": amount,
                     "barcode": data.get("barcode", ""),
                     "link": data.get("link", ""),
-                    "pdf": data.get("pdf", {}).get("charge", ""),
+                    "pdf": pdf_url,
                     "expire_at": due_date,
                     "created_at": datetime.now().isoformat()
                 }
