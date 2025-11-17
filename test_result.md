@@ -194,3 +194,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Erro React DOM 'insertBefore' corrigido com sucesso. Substituído componente Clock por spinner CSS puro e adicionado key props ao modal. Console logs confirmam ausência do erro. Aguardando credenciais Efi Bank do usuário para testar integração de pagamentos."
+  - agent: "testing"
+    message: "INTEGRAÇÃO EFI BANK TESTADA E FUNCIONANDO 100%! Credenciais de homologação válidas. PIX e Boleto sendo gerados com sucesso via admin endpoint. Charge IDs gerados: PIX (44850924, 44850926, 44850929, 44850932, 44850935, 44850938), Boleto (44850933, 44850936). Sistema atualiza financial_generated=true corretamente. Provedores com financial_generated=false são bloqueados com erro de assinatura (comportamento esperado). Integração pronta para produção."
