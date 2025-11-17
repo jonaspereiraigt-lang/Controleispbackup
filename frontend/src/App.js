@@ -4163,16 +4163,16 @@ const ProviderDashboard = ({ onLogout }) => {
     };
   }, []);
 
-  // Check localStorage for first login on mount
+  // Check localStorage for financial_generated on mount
   useEffect(() => {
-    const checkFirstLogin = () => {
-      const termsAccepted = localStorage.getItem("terms_accepted");
+    const checkFinancialGenerated = () => {
+      const financialGenerated = localStorage.getItem("financial_generated");
       const dueDay = localStorage.getItem("due_day");
       
-      // Show modal if terms not accepted and has due_day
-      if (termsAccepted === "false" && dueDay && dueDay !== "null") {
-        console.log("🔍 Detectado primeiro login via localStorage!");
-        console.log("   terms_accepted:", termsAccepted);
+      // Show modal if financial NOT generated (regardless of terms_accepted)
+      if (financialGenerated === "false" && dueDay && dueDay !== "null") {
+        console.log("🔍 Provedor sem financeiro gerado - Mostrando tela de bloqueio!");
+        console.log("   financial_generated:", financialGenerated);
         console.log("   due_day:", dueDay);
         setShowTermsModal(true);
         
@@ -4185,7 +4185,7 @@ const ProviderDashboard = ({ onLogout }) => {
     };
     
     // Small delay to ensure other useEffects have run
-    setTimeout(checkFirstLogin, 100);
+    setTimeout(checkFinancialGenerated, 100);
   }, []);
 
   // Auto-check payment status - DESABILITADO (pagamento via Efi Bank)
