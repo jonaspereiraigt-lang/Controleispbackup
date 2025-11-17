@@ -536,7 +536,8 @@ class BackendTester:
             )
             
             if response.status_code == 200:
-                payments = response.json()
+                data = response.json()
+                payments = data.get("payments", []) if isinstance(data, dict) else data
                 self.log_result("Provider My Payments", True, f"Endpoint working - Found {len(payments)} payments")
                 
                 # Verify critical fields are present
