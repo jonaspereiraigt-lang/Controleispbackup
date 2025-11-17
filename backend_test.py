@@ -74,6 +74,20 @@ class BackendTester:
         """Create a test provider without financial_generated"""
         print("👤 Creating Test Provider...")
         
+        # First, try to find an existing provider without financial_generated
+        try:
+            response = self.session.get(f"{BACKEND_URL}/admin/providers", timeout=30)
+            if response.status_code == 200:
+                providers = response.json()
+                for provider in providers:
+                    if not provider.get("financial_generated", False):
+                        self.test_provider_id = provider.get("id")
+                        self.log_result("Create Provider", True, f"Using existing provider: {self.test_provider_id}")
+                        return True
+        except Exception as e:
+            print(f"Warning: Could not check existing providers: {e}")
+        
+        # If no existing provider found, create a new one
         try:
             provider_data = {
                 "name": "Provedor Teste Efi",
