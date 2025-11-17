@@ -648,19 +648,23 @@ class BackendTester:
     
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Efi Bank Integration Tests")
-        print("=" * 60)
+        print("🚀 Starting Financial Generation Issue Investigation")
+        print("=" * 80)
+        print("TESTING: Why admin-generated financial records don't appear in:")
+        print("1. Provider's 'Meu Financeiro' button")
+        print("2. Admin's 'Financeiro' tab")
+        print("=" * 80)
         
-        # Test sequence
+        # Test sequence - focused on the specific issue
         tests = [
+            ("Database Connection", self.connect_to_database),
             ("Admin Login", self.admin_login),
-            ("Create Test Provider", self.create_test_provider),
+            ("Get Existing Providers", self.get_existing_providers),
             ("Provider Login", self.test_provider_login),
-            ("Provider Access Without Financial", self.test_provider_access_without_financial),
-            ("Efi Credentials Test", self.test_efi_credentials),
-            ("Generate Financial - Boleto", self.test_generate_financial_boleto),
-            ("Generate Financial - PIX", self.test_generate_financial_pix),
-            ("Provider Financial Status", self.test_provider_financial_status),
+            ("Admin Generate Financial", self.test_admin_generate_financial),
+            ("Provider My Payments", self.test_provider_my_payments),
+            ("Admin Provider Payments", self.test_admin_provider_payments),
+            ("Database Payments Check", self.check_database_payments),
         ]
         
         passed = 0
