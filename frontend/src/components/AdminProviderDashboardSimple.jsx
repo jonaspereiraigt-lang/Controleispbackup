@@ -436,15 +436,56 @@ const AdminProviderDashboardSimple = () => {
                         </button>
                       </div>
 
+                      {/* Filtros de Status */}
+                      <div className="flex gap-2 mb-4 flex-wrap">
+                        <button 
+                          onClick={() => setPaymentFilter('todos')}
+                          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                            paymentFilter === 'todos' ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          Todos ({selectedProviderPayments.length})
+                        </button>
+                        <button 
+                          onClick={() => setPaymentFilter('aberto')}
+                          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                            paymentFilter === 'aberto' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                          }`}
+                        >
+                          Em Aberto ({selectedProviderPayments.filter(p => p.status === 'pending' && !isOverdue(p)).length})
+                        </button>
+                        <button 
+                          onClick={() => setPaymentFilter('atrasado')}
+                          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                            paymentFilter === 'atrasado' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'
+                          }`}
+                        >
+                          Em Atraso ({selectedProviderPayments.filter(p => p.status === 'pending' && isOverdue(p)).length})
+                        </button>
+                        <button 
+                          onClick={() => setPaymentFilter('pago')}
+                          className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                            paymentFilter === 'pago' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'
+                          }`}
+                        >
+                          Pagos ({selectedProviderPayments.filter(p => p.status === 'paid').length})
+                        </button>
+                      </div>
+
                       {loadingPayments ? (
                         <div className="text-center py-8 text-gray-500">Carregando pagamentos...</div>
-                      ) : payments.length === 0 ? (
+                      ) : getFilteredPayments().length === 0 ? (
                         <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
-                          Nenhum pagamento encontrado para este provedor
+                          {paymentFilter === 'todos' ? 'Nenhum pagamento encontrado para este provedor' : `Nenhum pagamento ${paymentFilter}`}
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          {payments.map((payment) => (
+                          {getFilteredPayments().map((payment) => {
+                            const overdue = isOverdue(payment);
+                            return (
+                            <div key={payment.id} className={`bg-white border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                              overdue ? 'border-l-4 border-l-red-500' : ''
+                            }`}>
                             <div key={payment.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
