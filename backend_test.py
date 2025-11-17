@@ -146,7 +146,11 @@ class BackendTester:
                 "neighborhood": "Centro",
                 "city": "São Paulo",
                 "state": "SP",
-                "cep": "01000-000"
+                "cep": "01000-000",
+                "id_front_photo": "test_front_photo.jpg",
+                "id_back_photo": "test_back_photo.jpg",
+                "holding_id_photo": "test_holding_photo.jpg",
+                "contract_accepted": True
             }
             
             response = self.session.post(
