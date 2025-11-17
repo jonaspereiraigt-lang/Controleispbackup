@@ -5932,6 +5932,20 @@ const ProviderDashboard = ({ onLogout }) => {
                 </Button>
               </div>
               
+              {/* Botão Meu Financeiro */}
+              <Button 
+                onClick={() => {
+                  setShowFinancialModal(true);
+                  loadMyPayments();
+                }}
+                variant="outline" 
+                className={`${isBlocked ? 'border-red-500 text-red-600 hover:bg-red-50 animate-pulse' : 'border-purple-200 text-purple-600 hover:bg-purple-50'}`}
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                Meu Financeiro
+                {isBlocked && <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">Bloqueado</span>}
+              </Button>
+              
               {/* Botão de Perfil */}
               <Button 
                 onClick={handleOpenProfileModal}
