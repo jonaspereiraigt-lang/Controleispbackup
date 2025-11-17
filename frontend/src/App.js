@@ -5857,9 +5857,9 @@ const ProviderDashboard = ({ onLogout }) => {
             <p>⚡ Liberação automática após confirmação</p>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
-  );
+  //     </DialogContent>
+  //   </Dialog>
+  // );
 
   // Logo gerenciado durante o cadastro - modal removido
 
