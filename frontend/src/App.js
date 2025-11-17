@@ -5945,8 +5945,15 @@ const ProviderDashboard = ({ onLogout }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-3">
-              <Building2 className="w-8 h-8 text-red-600" />
-              <h1 className="text-2xl font-bold text-gray-900">ControleIsp Provedor</h1>
+              <img 
+                src="/logo-controleisp.jpg"
+                alt="ControleIsp"
+                className="w-10 h-10 rounded-lg shadow-md object-cover"
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">ControleIsp</h1>
+                <p className="text-xs text-gray-600">Painel do Provedor</p>
+              </div>
             </div>
             
             <div className="flex items-center gap-3">
