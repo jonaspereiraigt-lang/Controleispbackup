@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Efi Bank Integration
-Tests provider creation, admin endpoints, and Efi Bank payment generation
+Backend Testing Script for Financial Generation Issue Investigation
+Tests the specific issue where admin-generated financial records are not appearing
+in provider's "Meu Financeiro" or admin's "Financeiro" tab
 """
 
 import requests
@@ -9,11 +10,15 @@ import json
 import sys
 import time
 from datetime import datetime
+import pymongo
+from pymongo import MongoClient
 
 # Configuration
-BACKEND_URL = "https://admin-isp.preview.emergentagent.com/api"
-ADMIN_USERNAME = "master"
-ADMIN_PASSWORD = "master123"
+BACKEND_URL = "https://copia-finalizada.emergent.host/api"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
+MONGO_URL = "mongodb://localhost:27017"
+DB_NAME = "test_db"
 
 class BackendTester:
     def __init__(self):
