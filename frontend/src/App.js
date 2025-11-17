@@ -1354,6 +1354,18 @@ const Login = ({ onLogin }) => {
       
       localStorage.setItem("token", response.data.access_token);
       localStorage.setItem("userType", "provider");
+      
+      // Salvar informações do primeiro login
+      if (response.data.first_login !== undefined) {
+        localStorage.setItem("first_login", response.data.first_login);
+      }
+      if (response.data.terms_accepted !== undefined) {
+        localStorage.setItem("terms_accepted", response.data.terms_accepted);
+      }
+      if (response.data.due_day !== undefined) {
+        localStorage.setItem("due_day", response.data.due_day);
+      }
+      
       onLogin(response.data.user_type);
       toast.success("Login realizado com sucesso!");
     } catch (error) {
