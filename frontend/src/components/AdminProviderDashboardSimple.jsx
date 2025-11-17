@@ -503,20 +503,21 @@ const AdminProviderDashboardSimple = () => {
                             const overdue = isOverdue(payment);
                             return (
                             <div key={payment.id} className={`bg-white border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                              overdue ? 'border-l-4 border-l-red-500' : ''
+                              overdue ? 'border-l-4 border-l-red-500 bg-red-50' : ''
                             }`}>
-                            <div key={payment.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                   <div className={`w-3 h-3 rounded-full ${
                                     payment.status === 'paid' ? 'bg-green-500' :
+                                    overdue ? 'bg-red-500' :
                                     payment.status === 'pending' ? 'bg-yellow-500' :
                                     payment.status === 'waiting' ? 'bg-blue-500' :
-                                    'bg-red-500'
+                                    'bg-gray-500'
                                   }`} />
                                   <div>
                                     <h4 className="font-semibold text-gray-900">
                                       {payment.payment_method === 'boleto' ? '📄 Boleto Bancário' : '💳 PIX'}
+                                      {overdue && <span className="ml-2 text-xs text-red-600 font-bold">⚠️ ATRASADO</span>}
                                     </h4>
                                     <p className="text-sm text-gray-500">ID: {payment.payment_id || payment.id}</p>
                                   </div>
@@ -527,12 +528,14 @@ const AdminProviderDashboardSimple = () => {
                                   </p>
                                   <span className={`text-xs px-2 py-1 rounded-full ${
                                     payment.status === 'paid' ? 'bg-green-100 text-green-800' :
+                                    overdue ? 'bg-red-100 text-red-800' :
                                     payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                     payment.status === 'waiting' ? 'bg-blue-100 text-blue-800' :
-                                    'bg-red-100 text-red-800'
+                                    'bg-gray-100 text-gray-800'
                                   }`}>
                                     {payment.status === 'paid' ? 'Pago' :
-                                     payment.status === 'pending' ? 'Pendente' :
+                                     overdue ? 'Atrasado' :
+                                     payment.status === 'pending' ? 'Em Aberto' :
                                      payment.status === 'waiting' ? 'Aguardando' :
                                      'Cancelado'}
                                   </span>
