@@ -787,6 +787,7 @@ class Token(BaseModel):
     first_login: Optional[bool] = None
     terms_accepted: Optional[bool] = None
     due_day: Optional[int] = None
+    financial_generated: Optional[bool] = None
 
 
 class ForgotPasswordRequest(BaseModel):
