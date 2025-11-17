@@ -1097,6 +1097,63 @@ async def provider_login(provider_data: ProviderLogin):
     }
 
 
+@api_router.post("/provider/accept-terms")
+async def accept_terms(current_user=Depends(get_current_provider)):
+    """Provider accepts terms on first login and triggers automatic payment generation"""
+    try:
+        provider_id = current_user["user_id"]
+        provider = await db.providers.find_one({"id": provider_id})
+        
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        # Check if already accepted
+        if provider.get("terms_accepted"):
+            return {
+                "success": True,
+                "message": "Termos já aceitos anteriormente",
+                "already_accepted": True
+            }
+        
+        # Update provider
+        await db.providers.update_one(
+            {"id": provider_id},
+            {"$set": {
+                "terms_accepted": True,
+                "terms_accepted_at": datetime.now(timezone.utc).isoformat(),
+                "first_login_completed": True,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Generate automatic installments if due_day is set and not already generated
+        due_day = provider.get("due_day")
+        financial_generated = provider.get("financial_generated", False)
+        
+        if due_day and not financial_generated:
+            result = await generate_automatic_installments(provider_id, due_day)
+            
+            return {
+                "success": True,
+                "message": "Termos aceitos e parcelas geradas com sucesso!",
+                "payments_generated": result.get("payments_generated", 0),
+                "first_due_date": result.get("first_due_date"),
+                "total_amount": result.get("total_amount")
+            }
+        
+        return {
+            "success": True,
+            "message": "Termos aceitos com sucesso!",
+            "already_accepted": False
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error accepting terms: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao aceitar termos")
+
+
 @api_router.post("/auth/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
     """Send password reset email to provider"""
