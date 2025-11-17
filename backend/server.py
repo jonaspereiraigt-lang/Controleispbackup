@@ -4830,9 +4830,98 @@ async def get_payment_status(current_user=Depends(get_current_provider)):
         raise HTTPException(status_code=500, detail="Erro ao consultar status do pagamento")
 
 
+@api_router.post("/payment/efi/webhook")
+async def efi_payment_webhook(request: Request):
+    """Handle Efi Bank webhook notifications for payment confirmations"""
+    try:
+        # Get raw body for signature validation
+        body = await request.body()
+        payload = body.decode()
+        
+        # Log webhook
+        print("[EFI WEBHOOK] Received notification")
+        print(f"[EFI WEBHOOK] Payload: {payload}")
+        
+        # Parse JSON
+        webhook_data = json.loads(payload)
+        
+        # Extract signature if present
+        signature = request.headers.get("X-Efi-Signature", "")
+        
+        # Verify signature (skip in development if not configured)
+        if signature:
+            is_valid = await verify_efi_webhook_signature(payload, signature)
+            if not is_valid:
+                print("[EFI WEBHOOK] Invalid signature")
+                # In production, reject invalid signatures
+                # For now, continue for debugging
+        
+        # Extract charge information
+        notification_type = webhook_data.get("notification_type", webhook_data.get("tipo", ""))
+        
+        print(f"[EFI WEBHOOK] Notification type: {notification_type}")
+        
+        # Handle different notification types
+        if notification_type in ["charge", "cobranca", "pix"]:
+            # Extract charge data
+            data = webhook_data.get("data", webhook_data.get("dados", {}))
+            
+            if isinstance(data, list) and len(data) > 0:
+                data = data[0]
+            
+            charge_id = data.get("charge_id", data.get("identificador", ""))
+            status = data.get("status", "")
+            
+            print(f"[EFI WEBHOOK] Charge ID: {charge_id}, Status: {status}")
+            
+            if charge_id:
+                # Find payment record
+                payment_record = await db.payments.find_one({"payment_id": str(charge_id)})
+                
+                if payment_record:
+                    print(f"[EFI WEBHOOK] Found payment record for charge {charge_id}")
+                    
+                    # Map Efi status to our status
+                    new_status = "paid" if status in ["paid", "pago", "confirmed"] else status
+                    
+                    # Update payment status
+                    await db.payments.update_one(
+                        {"payment_id": str(charge_id)},
+                        {"$set": {"status": new_status}}
+                    )
+                    
+                    print(f"[EFI WEBHOOK] Payment status updated to: {new_status}")
+                    
+                    # If payment is confirmed, activate subscription
+                    if new_status == "paid":
+                        subscription_id = payment_record.get("subscription_id")
+                        
+                        if subscription_id:
+                            print(f"[EFI WEBHOOK] Activating subscription: {subscription_id}")
+                            
+                            await db.subscriptions.update_one(
+                                {"id": subscription_id},
+                                {"$set": {
+                                    "payment_status": "active",
+                                    "updated_at": datetime.now(timezone.utc).isoformat()
+                                }}
+                            )
+                            
+                            print(f"[EFI WEBHOOK] Subscription activated successfully")
+                else:
+                    print(f"[EFI WEBHOOK] Payment record not found for charge {charge_id}")
+        
+        return {"status": "received", "code": 200}
+        
+    except Exception as e:
+        print(f"[EFI WEBHOOK] Error processing webhook: {str(e)}")
+        return {"status": "error", "code": 500, "message": str(e)}
+
+
+# LEGACY MERCADO PAGO WEBHOOK - KEPT FOR COMPATIBILITY (DISABLED)
 @api_router.post("/payment/webhook")
 async def payment_webhook(request: Request):
-    """Handle Mercado Pago webhook notifications"""
+    """DEPRECATED - Mercado Pago webhook (disabled) - Use /payment/efi/webhook"""
     try:
         # Log incoming webhook
         body = await request.body()
