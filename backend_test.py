@@ -77,12 +77,14 @@ class BackendTester:
         try:
             provider_data = {
                 "name": "Provedor Teste Efi",
+                "nome_fantasia": "Efi Test Provider",
                 "email": f"teste.efi.{int(time.time())}@example.com",
                 "password": "senha123",
                 "cnpj": "12.345.678/0001-90",
                 "cpf": "123.456.789-00",
                 "phone": "(11) 99999-9999",
                 "address": "Rua Teste, 123",
+                "bairro": "Centro",
                 "number": "123",
                 "complement": "Sala 1",
                 "neighborhood": "Centro",
@@ -93,7 +95,11 @@ class BackendTester:
                 "contract_date": "2025-01-01",
                 "plan_type": "mensal",
                 "plan_value": 199.00,
-                "payment_method": "boleto"
+                "payment_method": "boleto",
+                "id_front_photo": "test_front_photo.jpg",
+                "id_back_photo": "test_back_photo.jpg",
+                "holding_id_photo": "test_holding_photo.jpg",
+                "contract_accepted": True
             }
             
             response = self.session.post(
