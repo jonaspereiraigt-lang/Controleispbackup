@@ -80,8 +80,18 @@ class EfiPaymentService:
                             "name": provider_data.get("name", "")[:80],
                             "email": provider_data.get("email", ""),
                             "cpf": provider_data.get("cpf", "11111111111"),  # Default CPF if not provided
-                            "phone_number": provider_data.get("phone", ""),
-                        }
+                            "phone_number": provider_data.get("phone", "11999999999"),
+                            "birth": "1980-01-01",  # Default birth date
+                            "address": {
+                                "zipcode": "01000000",
+                                "street": "Rua Exemplo",
+                                "number": "123",
+                                "neighborhood": "Centro",
+                                "city": "São Paulo",
+                                "state": "SP"
+                            }
+                        },
+                        "message": "Pagamento da mensalidade do sistema ControleIsp"
                     }
                 }
             }
