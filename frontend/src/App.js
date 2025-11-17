@@ -4101,6 +4101,7 @@ const ProviderDashboard = ({ onLogout }) => {
     loadClients();
     checkPaymentStatus();
     loadProviderInfo();
+    loadMyPayments(); // Carregar pagamentos e status de bloqueio
     loadClientReminders();
     loadProviderLogo();
     loadProviderNotifications();
