@@ -3614,7 +3614,8 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
         holding_id_photo=provider_data.holding_id_photo,
         contract_accepted=True,
         contract_acceptance_date=datetime.now(timezone.utc),
-        contract_ip=client_ip
+        contract_ip=client_ip,
+        due_day=provider_data.due_day
     )
     
     provider_dict = provider.dict()
