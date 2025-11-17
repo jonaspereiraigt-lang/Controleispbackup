@@ -123,73 +123,30 @@ class BackendTester:
             return False
     
     def create_test_provider(self):
-        """Create a test provider without financial_generated"""
+        """Create a test provider for boleto testing"""
         print("👤 Creating Test Provider...")
         
-        # First, try to find an existing provider without financial_generated
         try:
-            response = self.session.get(f"{BACKEND_URL}/admin/providers", timeout=30)
-            if response.status_code == 200:
-                providers = response.json()
-                for provider in providers:
-                    if not provider.get("financial_generated", False):
-                        self.test_provider_id = provider.get("id")
-                        self.log_result("Create Provider", True, f"Using existing provider: {self.test_provider_id}")
-                        return True
-                        
-                # If all providers have financial_generated=true, reset one for testing
-                if providers:
-                    test_provider = providers[0]
-                    provider_id = test_provider.get("id")
-                    # Reset financial_generated to false for testing
-                    update_response = self.session.put(
-                        f"{BACKEND_URL}/admin/providers/{provider_id}",
-                        json={
-                            "name": test_provider.get("name"),
-                            "nome_fantasia": test_provider.get("nome_fantasia", test_provider.get("name")),
-                            "email": test_provider.get("email"),
-                            "cnpj": test_provider.get("cnpj", ""),
-                            "phone": test_provider.get("phone", ""),
-                            "address": test_provider.get("address", ""),
-                            "bairro": test_provider.get("bairro", "Centro"),
-                            "financial_generated": False  # Reset for testing
-                        },
-                        timeout=30
-                    )
-                    if update_response.status_code == 200:
-                        self.test_provider_id = provider_id
-                        self.log_result("Create Provider", True, f"Reset existing provider for testing: {provider_id}")
-                        return True
-        except Exception as e:
-            print(f"Warning: Could not check existing providers: {e}")
-        
-        # If no existing provider found, create a new one
-        try:
+            # Generate unique email to avoid conflicts
+            timestamp = int(time.time())
+            unique_email = f"provedor.boleto.test.{timestamp}@example.com"
+            
             provider_data = {
-                "name": "Provedor Teste Efi",
-                "nome_fantasia": "Efi Test Provider",
-                "email": f"teste.efi.{int(time.time())}.{hash(str(time.time()))%10000}@example.com",
-                "password": "senha123",
+                "name": "Provedor Teste Boleto",
+                "nome_fantasia": "Boleto Test Provider",
+                "email": unique_email,
+                "password": self.test_provider_password,
                 "cnpj": "11.222.333/0001-81",
                 "cpf": "123.456.789-00",
                 "phone": "(11) 99999-9999",
-                "address": "Rua Teste, 123",
+                "address": "Rua Teste Boleto, 123",
                 "bairro": "Centro",
                 "number": "123",
                 "complement": "Sala 1",
                 "neighborhood": "Centro",
                 "city": "São Paulo",
                 "state": "SP",
-                "cep": "01000-000",
-                "contract_number": "CONT001",
-                "contract_date": "2025-01-01",
-                "plan_type": "mensal",
-                "plan_value": 199.00,
-                "payment_method": "boleto",
-                "id_front_photo": "test_front_photo.jpg",
-                "id_back_photo": "test_back_photo.jpg",
-                "holding_id_photo": "test_holding_photo.jpg",
-                "contract_accepted": True
+                "cep": "01000-000"
             }
             
             response = self.session.post(
@@ -201,6 +158,7 @@ class BackendTester:
             if response.status_code == 200:
                 data = response.json()
                 self.test_provider_id = data.get("provider_id")
+                self.test_provider_email = unique_email
                 self.log_result("Create Provider", True, f"Provider created successfully: {self.test_provider_id}")
                 return True
             else:
