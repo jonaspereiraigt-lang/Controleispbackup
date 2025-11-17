@@ -5695,32 +5695,11 @@ const ProviderDashboard = ({ onLogout }) => {
   const negotiatedTotal = negotiatedClients.reduce((sum, client) => sum + (client.debt_amount || 0), 0);
 
   // Payment functions
+  // Função de pagamento antigo (Mercado Pago) - DESABILITADA
+  // Agora o pagamento é feito via Efi Bank com boletos gerados pelo admin
   const checkPaymentStatus = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${API}/payment/status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setPaymentStatus(response.data);
-      
-      // If payment was confirmed, hide modal
-      if (response.data.is_active && showPayment) {
-        setShowPayment(false);
-        toast.success("Pagamento confirmado! Acesso liberado.");
-      }
-      
-      // Show payment if needed
-      if (response.data.needs_payment && response.data.show_pix) {
-        setShowPayment(true);
-      }
-    } catch (error) {
-      console.error("Error checking payment status:", error);
-      // If 402 (payment required), show payment
-      if (error.response?.status === 402) {
-        setShowPayment(true);
-      }
-    }
+    // Desabilitado - pagamento agora é via Efi Bank
+    return;
   };
 
   const createPayment = async () => {
