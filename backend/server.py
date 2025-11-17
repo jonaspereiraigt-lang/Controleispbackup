@@ -1623,7 +1623,8 @@ async def create_provider_by_admin(provider_data: dict, current_user=Depends(get
             plan_value=provider_data.get("plan_value", 199.00),
             payment_method=provider_data.get("payment_method", "boleto"),
             is_active=True,
-            approved=True
+            approved=True,
+            financial_generated=False  # Precisa gerar financeiro
         )
         
         provider_dict = provider.dict()
