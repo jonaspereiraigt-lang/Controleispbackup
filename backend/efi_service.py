@@ -105,7 +105,7 @@ class EfiPaymentService:
                             "name": provider_data.get("name", "")[:80],
                             "email": provider_data.get("email", ""),
                             "cpf": provider_data.get("cpf", "11111111111"),  # Default CPF if not provided
-                            "phone_number": provider_data.get("phone", "11999999999"),
+                            "phone_number": "11999999999",  # Fixed format: 11 + 9 + 8 digits
                             "birth": "1980-01-01",  # Default birth date
                             "address": {
                                 "zipcode": "01000000",
