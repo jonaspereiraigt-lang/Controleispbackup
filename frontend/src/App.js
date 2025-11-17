@@ -6074,26 +6074,25 @@ const ProviderDashboard = ({ onLogout }) => {
         </div>
 
         {/* Sistema de Agendamentos Profissional */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-6">
+          <div className="flex flex-col gap-4 mb-6">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                 <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-2 rounded-lg">
-                  <Calendar className="w-5 h-5 text-white" />
+                  <Calendar className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </div>
                 📅 Agendamentos de Cobranças
               </h3>
-              <p className="text-gray-600 text-sm">Gerencie todos os agendamentos de pagamento dos seus clientes</p>
+              <p className="text-gray-600 text-xs md:text-sm">Gerencie todos os agendamentos de pagamento dos seus clientes</p>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full">
               <Button
                 onClick={() => {
                   loadScheduledReminders();
                   setShowScheduleManager(true);
                 }}
-                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                size="lg"
+                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto text-sm md:text-base"
               >
                 <Calendar className="w-4 h-4 mr-2" />
                 Ver Todos Agendamentos
@@ -6104,8 +6103,7 @@ const ProviderDashboard = ({ onLogout }) => {
                   // Função para enviar lembretes automáticos dos agendamentos de hoje
                   handleSendTodayReminders();
                 }}
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                size="lg"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto text-sm md:text-base"
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Enviar Cobranças de Hoje
