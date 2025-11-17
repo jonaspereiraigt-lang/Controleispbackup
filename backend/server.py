@@ -4781,7 +4781,13 @@ async def get_my_payments(current_user=Depends(get_current_provider)):
     
     try:
         # Get all payments for this provider
-        payments = await db.payments.find({"provider_id": provider_id}).sort("created_at", -1).to_list(100)
+        payments_raw = await db.payments.find({"provider_id": provider_id}).sort("created_at", -1).to_list(100)
+        
+        # Clean payments (remove _id)
+        payments = []
+        for payment in payments_raw:
+            payment.pop('_id', None)
+            payments.append(payment)
         
         # Check if provider is blocked (has overdue payment)
         is_blocked = False
