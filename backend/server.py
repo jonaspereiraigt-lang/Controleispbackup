@@ -2017,6 +2017,28 @@ async def generate_provider_financial(
         raise HTTPException(status_code=500, detail="Erro ao gerar financeiro")
 
 
+@api_router.get("/provider/financial-status")
+async def get_provider_financial_status(current_user=Depends(get_current_provider)):
+    """Get financial generation status for current provider"""
+    try:
+        provider = await db.providers.find_one({"id": current_user["user_id"]})
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        return {
+            "financial_generated": provider.get("financial_generated", False),
+            "approved": provider.get("approved", False),
+            "name": provider.get("name"),
+            "email": provider.get("email")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error getting financial status: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao verificar status")
+
+
 # Duplicate function removed - using the new renew_provider_subscription function above
 
 @api_router.post("/admin/renew-all-subscriptions")
