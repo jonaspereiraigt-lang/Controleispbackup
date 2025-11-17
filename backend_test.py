@@ -27,6 +27,9 @@ class BackendTester:
         self.provider_token = None
         self.test_provider_id = None
         self.results = []
+        self.mongo_client = None
+        self.db = None
+        self.generated_payment_id = None
         
     def log_result(self, test_name, success, message, details=None):
         """Log test result"""
