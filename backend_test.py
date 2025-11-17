@@ -403,7 +403,7 @@ class BackendTester:
             self.mongo_client = MongoClient(MONGO_URL)
             self.db = self.mongo_client[DB_NAME]
             # Test connection
-            self.db.admin.command('ping')
+            self.db.list_collection_names()
             self.log_result("Database Connection", True, "Successfully connected to MongoDB")
             return True
         except Exception as e:
