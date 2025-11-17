@@ -4160,8 +4160,8 @@ const ProviderDashboard = ({ onLogout }) => {
         setCurrentUser(null);
         return;
       } else if (error.response?.status === 402) {
-        setShowPayment(true);
-        toast.error("Assinatura expirada. Renove para continuar usando o sistema.");
+        // Pagamento agora é gerenciado via Efi Bank pelo admin
+        toast.error("Sua conta está com pagamento pendente. Acesse 'Meu Financeiro' para pagar.");
       } else {
         toast.error("Erro ao carregar clientes");
       }
