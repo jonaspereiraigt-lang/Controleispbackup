@@ -106,33 +106,32 @@ const LandingPage = () => {
     return () => clearInterval(interval);
   }, [currentSlide]);
 
-  // Função para registrar visita
-  const registerVisit = async () => {
-    try {
-      await axios.post(`${API}/public/visit`);
-    } catch (error) {
-      console.error("Erro ao registrar visita:", error);
-      // Não falhar se não conseguir registrar a visita
-    }
-  };
+  // Função para registrar visita - DESABILITADA (endpoint não implementado)
+  // const registerVisit = async () => {
+  //   try {
+  //     await axios.post(`${API}/public/visit`);
+  //   } catch (error) {
+  //     console.error("Erro ao registrar visita:", error);
+  //   }
+  // };
 
-  // Função para carregar estatísticas de visitantes
-  const loadVisitorStats = async () => {
-    try {
-      const response = await axios.get(`${API}/public/visitor-count`);
-      setVisitorStats(response.data);
-    } catch (error) {
-      console.error("Erro ao carregar estatísticas de visitantes:", error);
-    } finally {
-      setLoadingVisitorStats(false);
-    }
-  };
+  // Função para carregar estatísticas de visitantes - DESABILITADA (endpoint não implementado)
+  // const loadVisitorStats = async () => {
+  //   try {
+  //     const response = await axios.get(`${API}/public/visitor-count`);
+  //     setVisitorStats(response.data);
+  //   } catch (error) {
+  //     console.error("Erro ao carregar estatísticas de visitantes:", error);
+  //   } finally {
+  //     setLoadingVisitorStats(false);
+  //   }
+  // };
 
-  // Registrar visita e carregar estatísticas ao carregar a página
-  useEffect(() => {
-    registerVisit();
-    loadVisitorStats();
-  }, []);
+  // Registrar visita e carregar estatísticas ao carregar a página - DESABILITADO
+  // useEffect(() => {
+  //   registerVisit();
+  //   loadVisitorStats();
+  // }, []);
 
   const features = [
     {
