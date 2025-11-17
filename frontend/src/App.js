@@ -176,7 +176,7 @@ const LandingPage = () => {
             <div className="flex items-center gap-4 flex-shrink-0">
               <div className="relative">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_controleisp-debt/artifacts/f07p2k2n_b833d669-8080-47f4-9e03-87fe27ffa1df.jpg"
+                  src="/logo-controleisp.jpg"
                   alt="ControleIsp"
                   className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl shadow-lg object-cover border-2 border-red-100"
                 />
