@@ -4795,11 +4795,27 @@ async def get_my_payments(current_user=Depends(get_current_provider)):
         
         for payment in payments:
             if payment.get("status") == "pending" and payment.get("expires_at"):
-                expiry_date = datetime.fromisoformat(payment["expires_at"].replace("Z", "+00:00"))
-                # Block if 1+ days overdue
-                if (today - expiry_date).days >= 1:
-                    is_blocked = True
-                    break
+                expires_at_str = payment["expires_at"]
+                try:
+                    # Handle different date formats
+                    if "T" in expires_at_str:
+                        # Full datetime string
+                        expiry_date = datetime.fromisoformat(expires_at_str.replace("Z", "+00:00"))
+                    else:
+                        # Date-only string, add end of day time and timezone
+                        expiry_date = datetime.fromisoformat(expires_at_str + "T23:59:59+00:00")
+                    
+                    # Ensure timezone awareness
+                    if expiry_date.tzinfo is None:
+                        expiry_date = expiry_date.replace(tzinfo=timezone.utc)
+                    
+                    # Block if 1+ days overdue
+                    if (today - expiry_date).days >= 1:
+                        is_blocked = True
+                        break
+                except Exception as e:
+                    print(f"Error parsing expires_at '{expires_at_str}': {e}")
+                    continue
         
         # Update provider blocked status if needed
         provider = await db.providers.find_one({"id": provider_id})
