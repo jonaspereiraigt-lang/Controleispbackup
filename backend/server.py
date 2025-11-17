@@ -1207,7 +1207,7 @@ async def reset_password(request: ResetPasswordRequest):
 # EFI BANK PAYMENT FUNCTIONS
 # =============================================================================
 
-async def create_efi_boleto_payment(provider_id: str, amount: float = 199.00):
+async def create_efi_boleto_payment(provider_id: str, amount: float = 199.00, due_days: int = 30):
     """Create boleto payment with Efi Bank for provider subscription"""
     try:
         # Get provider info
@@ -1225,7 +1225,7 @@ async def create_efi_boleto_payment(provider_id: str, amount: float = 199.00):
         }
         
         # Create boleto via Efi Bank
-        result = get_efi_service().create_boleto_charge(provider_data, amount, due_days=3)
+        result = get_efi_service().create_boleto_charge(provider_data, amount, due_days=due_days)
         
         if result.get("success"):
             return {
