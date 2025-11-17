@@ -631,20 +631,17 @@ class BackendTester:
     
     def cleanup(self):
         """Clean up test data"""
-        print("🧹 Cleaning up test data...")
+        print("🧹 Cleaning up...")
         
-        if self.test_provider_id:
+        # Close database connection
+        if self.mongo_client:
             try:
-                response = self.session.delete(
-                    f"{BACKEND_URL}/admin/providers/{self.test_provider_id}",
-                    timeout=30
-                )
-                if response.status_code == 200:
-                    print("✅ Test provider cleaned up successfully")
-                else:
-                    print(f"⚠️  Failed to cleanup test provider: {response.status_code}")
+                self.mongo_client.close()
+                print("✅ Database connection closed")
             except Exception as e:
-                print(f"⚠️  Error during cleanup: {str(e)}")
+                print(f"⚠️  Error closing database: {str(e)}")
+        
+        # Note: We don't delete the test provider since we're using existing providers
     
     def run_all_tests(self):
         """Run all tests in sequence"""
