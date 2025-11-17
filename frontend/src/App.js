@@ -1365,6 +1365,9 @@ const Login = ({ onLogin }) => {
       if (response.data.due_day !== undefined) {
         localStorage.setItem("due_day", response.data.due_day);
       }
+      if (response.data.financial_generated !== undefined) {
+        localStorage.setItem("financial_generated", response.data.financial_generated);
+      }
       
       onLogin(response.data.user_type);
       toast.success("Login realizado com sucesso!");
