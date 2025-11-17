@@ -701,6 +701,7 @@ class ProviderCreate(BaseModel):
     id_back_photo: str   # Obrigatório
     holding_id_photo: str  # Obrigatório
     contract_accepted: bool
+    due_day: int  # Dia de vencimento (5, 10, 15, 20, 25)
 
 
 class ProviderLogin(BaseModel):
