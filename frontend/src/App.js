@@ -3032,39 +3032,22 @@ O ControleIsp é essencial para proteger seu negócio contra prejuízos. Não pe
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 
-                {/* Sistema de Pagamentos */}
+                {/* Total de Provedores */}
                 <div className="text-center md:text-left">
-                  <div className={`rounded-lg p-4 border ${systemSettings.payment_required 
-                    ? 'bg-orange-50 border-orange-200' 
-                    : 'bg-green-50 border-green-200'}`}>
-                    <div className={`text-sm font-medium mb-2 ${systemSettings.payment_required 
-                      ? 'text-orange-600' 
-                      : 'text-green-600'}`}>
-                      Sistema de Pagamentos
+                  <div className="rounded-lg p-4 border bg-green-50 border-green-200">
+                    <div className="text-sm font-medium mb-2 text-green-600">
+                      Total de Provedores
                     </div>
-                    <div className={`text-xl font-bold mb-2 ${systemSettings.payment_required 
-                      ? 'text-orange-700' 
-                      : 'text-green-700'}`}>
-                      {systemSettings.payment_required ? '💰 ATIVO' : '🆓 GRATUITO'}
+                    <div className="text-3xl font-bold mb-2 text-green-700">
+                      {providers.length}
                     </div>
-                    <Button
-                      onClick={handleTogglePaymentSystem}
-                      disabled={togglingPayment}
-                      size="sm"
-                      className={`w-full text-xs ${systemSettings.payment_required 
-                        ? 'bg-orange-600 hover:bg-orange-700 text-white' 
-                        : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                    <button
+                      onClick={() => setShowProviderManagement(true)}
+                      className="w-full text-xs bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-md transition-all duration-200 flex items-center justify-center gap-1"
                     >
-                      {togglingPayment ? (
-                        <Clock className="w-3 h-3 mr-1 animate-spin" />
-                      ) : (
-                        <Settings className="w-3 h-3 mr-1" />
-                      )}
-                      {togglingPayment 
-                        ? 'Alterando...' 
-                        : (systemSettings.payment_required ? 'Tornar Gratuito' : 'Ativar Cobrança')
-                      }
-                    </Button>
+                      <Building2 className="w-3 h-3" />
+                      <span>Gerenciar Provedores</span>
+                    </button>
                   </div>
                 </div>
                 
