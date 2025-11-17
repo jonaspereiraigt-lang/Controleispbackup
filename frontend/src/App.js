@@ -4115,20 +4115,18 @@ const ProviderDashboard = ({ onLogout }) => {
     };
   }, []);
 
-  // Auto-check payment status when modal is open
-  useEffect(() => {
-    let interval;
-    if (showPayment && paymentStatus?.qr_code) {
-      // Check every 30 seconds
-      interval = setInterval(() => {
-        checkPaymentStatus();
-      }, 30000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [showPayment, paymentStatus?.qr_code]);
+  // Auto-check payment status - DESABILITADO (pagamento via Efi Bank)
+  // useEffect(() => {
+  //   let interval;
+  //   if (showPayment && paymentStatus?.qr_code) {
+  //     interval = setInterval(() => {
+  //       checkPaymentStatus();
+  //     }, 30000);
+  //   }
+  //   return () => {
+  //     if (interval) clearInterval(interval);
+  //   };
+  // }, [showPayment, paymentStatus?.qr_code]);
 
   const loadClients = async () => {
     try {
