@@ -734,6 +734,10 @@ class Provider(BaseModel):
     contract_version: str = "1.0"
     financial_generated: bool = False  # Se o admin já gerou o financeiro
     approved: bool = False  # Se foi aprovado pelo admin
+    due_day: Optional[int] = None  # Dia de vencimento (5, 10, 15, 20, 25)
+    first_login_completed: bool = False  # Se já fez primeiro login
+    terms_accepted: bool = False  # Se aceitou os termos no primeiro login
+    terms_accepted_at: Optional[datetime] = None
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
