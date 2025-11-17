@@ -1090,7 +1090,10 @@ async def provider_login(provider_data: ProviderLogin):
     return {
         "access_token": access_token, 
         "token_type": "bearer",
-        "user_type": "provider"
+        "user_type": "provider",
+        "first_login": not provider.get("first_login_completed", False),
+        "terms_accepted": provider.get("terms_accepted", False),
+        "due_day": provider.get("due_day")
     }
 
 
