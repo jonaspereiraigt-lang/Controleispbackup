@@ -4263,6 +4263,37 @@ const ProviderDashboard = ({ onLogout }) => {
     }
   };
 
+  const handleAcceptTerms = async () => {
+    try {
+      setAcceptingTerms(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.post(`${API}/provider/accept-terms`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        toast.success(`✅ ${response.data.message}`);
+        setShowTermsModal(false);
+        
+        // Reload payments to show newly generated installments
+        await loadMyPayments();
+        
+        // Show success message with details
+        if (response.data.payments_generated) {
+          toast.success(
+            `🎉 ${response.data.payments_generated} parcelas geradas! Total: R$ ${response.data.total_amount?.toFixed(2)}`,
+            { duration: 5000 }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao aceitar termos:", error);
+      toast.error("Erro ao aceitar termos: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setAcceptingTerms(false);
+    }
+  };
+
   const handleCreateClient = async (e) => {
     e.preventDefault();
     
