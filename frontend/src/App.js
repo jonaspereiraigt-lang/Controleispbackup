@@ -8619,7 +8619,8 @@ const ProviderDashboard = ({ onLogout }) => {
 
 // Main App Component
 function App() {
-  // Redirect de www para não-www
+  // Redirect de www para não-www (PAUSADO PARA TESTES)
+  /*
   useEffect(() => {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
@@ -8633,6 +8634,7 @@ function App() {
       window.location.replace(newUrl);
     }
   }, []);
+  */
 
   return (
     <Router>
