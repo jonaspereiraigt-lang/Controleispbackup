@@ -395,53 +395,238 @@ class BackendTester:
             self.log_result("Financial Status", False, f"Error checking financial status: {str(e)}")
             return False
     
-    def test_efi_credentials(self):
-        """Test if Efi credentials are working by checking service initialization"""
-        print("🔑 Testing Efi Credentials...")
+    def connect_to_database(self):
+        """Connect to MongoDB to check payments collection directly"""
+        print("🗄️ Connecting to Database...")
         
         try:
-            # Try to create a simple boleto to test credentials
-            payment_data = {
-                "type": "boleto",
-                "amount": 1.00  # Minimal amount for testing
-            }
-            
-            if not self.test_provider_id:
-                self.log_result("Efi Credentials", False, "No test provider available for credential test")
-                return False
-            
-            response = self.session.post(
-                f"{BACKEND_URL}/admin/providers/{self.test_provider_id}/generate-financial",
-                json=payment_data,
-                timeout=60
-            )
+            self.mongo_client = MongoClient(MONGO_URL)
+            self.db = self.mongo_client[DB_NAME]
+            # Test connection
+            self.db.admin.command('ping')
+            self.log_result("Database Connection", True, "Successfully connected to MongoDB")
+            return True
+        except Exception as e:
+            self.log_result("Database Connection", False, f"Failed to connect to MongoDB: {str(e)}")
+            return False
+    
+    def get_existing_providers(self):
+        """Get list of existing providers"""
+        print("👥 Getting Existing Providers...")
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/admin/providers", timeout=30)
             
             if response.status_code == 200:
-                data = response.json()
-                if data.get("success"):
-                    self.log_result("Efi Credentials", True, "Efi credentials are valid and working")
+                providers = response.json()
+                self.log_result("Get Providers", True, f"Found {len(providers)} providers")
+                
+                # Show provider details
+                for i, provider in enumerate(providers[:3]):  # Show first 3
+                    print(f"   Provider {i+1}: {provider.get('name')} (ID: {provider.get('id')[:8]}...)")
+                
+                if providers:
+                    # Use the first provider for testing
+                    self.test_provider_id = providers[0].get('id')
                     return True
                 else:
-                    self.log_result("Efi Credentials", False, "Efi service returned error", data)
+                    self.log_result("Get Providers", False, "No providers found in system")
                     return False
-            elif response.status_code == 401:
-                self.log_result("Efi Credentials", False, "Efi credentials invalid (401 Unauthorized)")
-                return False
-            elif response.status_code == 400:
-                # Check if it's a credential issue or data issue
-                error_text = response.text.lower()
-                if "unauthorized" in error_text or "invalid" in error_text:
-                    self.log_result("Efi Credentials", False, "Efi credentials appear to be invalid", response.text)
-                    return False
-                else:
-                    self.log_result("Efi Credentials", True, "Efi credentials valid, but data validation failed (expected)")
-                    return True
             else:
-                self.log_result("Efi Credentials", False, f"Unexpected response: {response.status_code}", response.text)
+                self.log_result("Get Providers", False, f"Failed to get providers: {response.status_code}", response.text)
                 return False
                 
         except Exception as e:
-            self.log_result("Efi Credentials", False, f"Error testing Efi credentials: {str(e)}")
+            self.log_result("Get Providers", False, f"Error getting providers: {str(e)}")
+            return False
+    
+    def test_admin_generate_financial(self):
+        """Test admin endpoint to generate financial for provider - MAIN TEST"""
+        print("💰 Testing Admin Generate Financial (MAIN TEST)...")
+        
+        if not self.test_provider_id:
+            self.log_result("Admin Generate Financial", False, "No test provider ID available")
+            return False
+        
+        try:
+            # Test both PIX and Boleto
+            for payment_type in ["pix", "boleto"]:
+                print(f"   Testing {payment_type.upper()}...")
+                
+                payment_data = {
+                    "type": payment_type,
+                    "amount": 199.00
+                }
+                
+                response = self.session.post(
+                    f"{BACKEND_URL}/admin/providers/{self.test_provider_id}/generate-financial",
+                    json=payment_data,
+                    timeout=60
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    payment_info = data.get("payment", {})
+                    
+                    if payment_info.get("success"):
+                        # Store the payment ID for later verification
+                        if payment_type == "pix":
+                            self.generated_payment_id = payment_info.get("charge_id")
+                        
+                        details = {
+                            "type": payment_type,
+                            "charge_id": payment_info.get("charge_id"),
+                            "amount": payment_info.get("amount"),
+                            "status": payment_info.get("status")
+                        }
+                        self.log_result(f"Admin Generate Financial ({payment_type.upper()})", True, f"{payment_type.upper()} generated successfully", details)
+                    else:
+                        self.log_result(f"Admin Generate Financial ({payment_type.upper()})", False, f"Failed to generate {payment_type}", payment_info)
+                        return False
+                else:
+                    self.log_result(f"Admin Generate Financial ({payment_type.upper()})", False, f"HTTP {response.status_code}", response.text)
+                    return False
+            
+            return True
+                
+        except Exception as e:
+            self.log_result("Admin Generate Financial", False, f"Error generating financial: {str(e)}")
+            return False
+    
+    def test_provider_my_payments(self):
+        """Test provider endpoint to get their payments - CRITICAL TEST"""
+        print("🔍 Testing Provider My Payments Endpoint...")
+        
+        if not self.provider_token:
+            self.log_result("Provider My Payments", False, "No provider token available")
+            return False
+        
+        try:
+            # Create a new session for provider
+            provider_session = requests.Session()
+            provider_session.headers.update({
+                "Authorization": f"Bearer {self.provider_token}"
+            })
+            
+            response = provider_session.get(
+                f"{BACKEND_URL}/provider/my-payments",
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                payments = response.json()
+                self.log_result("Provider My Payments", True, f"Endpoint working - Found {len(payments)} payments")
+                
+                # Check if our generated payment is in the list
+                if self.generated_payment_id:
+                    found_payment = False
+                    for payment in payments:
+                        if payment.get("payment_id") == self.generated_payment_id or payment.get("charge_id") == self.generated_payment_id:
+                            found_payment = True
+                            break
+                    
+                    if found_payment:
+                        print("   ✅ Generated payment found in provider's payment list")
+                    else:
+                        print("   ❌ Generated payment NOT found in provider's payment list")
+                        print(f"   Looking for payment_id: {self.generated_payment_id}")
+                        print(f"   Found payments: {[p.get('payment_id', p.get('charge_id')) for p in payments]}")
+                
+                return True
+            else:
+                self.log_result("Provider My Payments", False, f"HTTP {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("Provider My Payments", False, f"Error getting provider payments: {str(e)}")
+            return False
+    
+    def test_admin_provider_payments(self):
+        """Test admin endpoint to get provider's payments - CRITICAL TEST"""
+        print("🔍 Testing Admin Provider Payments Endpoint...")
+        
+        if not self.test_provider_id:
+            self.log_result("Admin Provider Payments", False, "No test provider ID available")
+            return False
+        
+        try:
+            response = self.session.get(
+                f"{BACKEND_URL}/admin/providers/{self.test_provider_id}/payments",
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                payments = response.json()
+                self.log_result("Admin Provider Payments", True, f"Endpoint working - Found {len(payments)} payments")
+                
+                # Check if our generated payment is in the list
+                if self.generated_payment_id:
+                    found_payment = False
+                    for payment in payments:
+                        if payment.get("payment_id") == self.generated_payment_id or payment.get("charge_id") == self.generated_payment_id:
+                            found_payment = True
+                            break
+                    
+                    if found_payment:
+                        print("   ✅ Generated payment found in admin's payment list")
+                    else:
+                        print("   ❌ Generated payment NOT found in admin's payment list")
+                        print(f"   Looking for payment_id: {self.generated_payment_id}")
+                        print(f"   Found payments: {[p.get('payment_id', p.get('charge_id')) for p in payments]}")
+                
+                return True
+            else:
+                self.log_result("Admin Provider Payments", False, f"HTTP {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("Admin Provider Payments", False, f"Error getting admin provider payments: {str(e)}")
+            return False
+    
+    def check_database_payments(self):
+        """Check payments collection in database directly - DIAGNOSTIC TEST"""
+        print("🗄️ Checking Database Payments Collection...")
+        
+        if not self.db:
+            self.log_result("Database Payments Check", False, "No database connection available")
+            return False
+        
+        try:
+            # Get all payments from database
+            payments_collection = self.db.payments
+            all_payments = list(payments_collection.find({}))
+            
+            self.log_result("Database Payments Check", True, f"Found {len(all_payments)} payments in database")
+            
+            # Show payment details
+            for i, payment in enumerate(all_payments[-5:]):  # Show last 5 payments
+                print(f"   Payment {i+1}:")
+                print(f"     ID: {payment.get('id', payment.get('_id'))}")
+                print(f"     Provider ID: {payment.get('provider_id')}")
+                print(f"     Payment ID: {payment.get('payment_id')}")
+                print(f"     Amount: {payment.get('amount')}")
+                print(f"     Status: {payment.get('status')}")
+                print(f"     Created: {payment.get('created_at')}")
+                print()
+            
+            # Check if our test provider has payments
+            if self.test_provider_id:
+                provider_payments = list(payments_collection.find({"provider_id": self.test_provider_id}))
+                print(f"   Payments for test provider ({self.test_provider_id[:8]}...): {len(provider_payments)}")
+                
+                if self.generated_payment_id:
+                    matching_payments = list(payments_collection.find({
+                        "$or": [
+                            {"payment_id": self.generated_payment_id},
+                            {"charge_id": self.generated_payment_id}
+                        ]
+                    }))
+                    print(f"   Payments matching generated ID ({self.generated_payment_id}): {len(matching_payments)}")
+            
+            return True
+                
+        except Exception as e:
+            self.log_result("Database Payments Check", False, f"Error checking database: {str(e)}")
             return False
     
     def cleanup(self):
