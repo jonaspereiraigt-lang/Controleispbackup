@@ -30,7 +30,7 @@ async def create_admin():
         return
     
     # Criar hash da senha
-    password_hash = pwd_context.hash(admin_password)
+    password_hash = hash_password(admin_password)
     
     # Criar documento do admin
     admin_data = {
