@@ -22,7 +22,8 @@ import httpx
 import urllib.parse
 import brazilnum.cnpj as cnpj_utils
 import brazilnum.cpf as cpf_utils
-import mercadopago
+# MERCADO PAGO INTEGRATION DISABLED - Will be replaced with Efi Bank
+# import mercadopago
 import qrcode
 from io import BytesIO
 import base64
