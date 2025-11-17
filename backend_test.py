@@ -13,7 +13,7 @@ from datetime import datetime
 # Configuration
 BACKEND_URL = "https://admin-isp.preview.emergentagent.com/api"
 ADMIN_USERNAME = "master"
-ADMIN_PASSWORD = "admin123"
+ADMIN_PASSWORD = "master123"
 
 class BackendTester:
     def __init__(self):
