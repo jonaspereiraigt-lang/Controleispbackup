@@ -177,11 +177,11 @@ frontend:
 backend:
   - task: "Correção erro 400 na geração de boletos - Dados do Provider"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py, /app/backend/efi_service.py"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "user"
@@ -189,6 +189,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "CAUSA RAIZ IDENTIFICADA: O modelo Provider não continha os campos cpf, cep, number, city, state. Quando o provedor se registrava, esses dados eram perdidos. O efi_service.py usava dados hardcoded (CPF teste: 12345678909, endereço: Rua Exemplo, etc) que funcionam no sandbox mas são rejeitados pela API de produção. CORREÇÕES APLICADAS: 1) Adicionados campos cpf, cep, number, city, state ao modelo Provider (server.py linha 717-747), 2) Modificado efi_service.py para usar dados reais do provider com validação robusta (linhas 100-147), 3) Atualizado create_efi_boleto_payment para enviar todos os campos necessários (server.py linha 1493-1527). Agora os dados reais do provedor são enviados para a API do Efi Bank."
+      - working: true
+        agent: "testing"
+        comment: "✅ ONBOARDING FLOW COMPLETAMENTE TESTADO E FUNCIONANDO! Teste completo realizado seguindo exatamente o fluxo solicitado: 1) STEP 1: Criação de novo provedor com TODOS os dados obrigatórios (CPF válido: 11144477735, CNPJ válido, endereço completo com CEP, número, cidade, estado) ✅, 2) STEP 2: Login do provedor retornando first_login=true, terms_accepted=false, financial_generated=false ✅, 3) STEP 3: Aceitar termos disparou geração automática de 12 parcelas com sucesso (payments_generated=12, total_amount=2072.16) ✅, 4) STEP 4: Verificação das 12 parcelas geradas com valores corretos (1ª proporcional, 2ª-3ª promocional R$99.90, 4ª-12ª R$199.90) e todos os campos Efi Bank (link, pdf, barcode) válidos ✅. AMBIENTE DE PRODUÇÃO (EFI_SANDBOX=false) funcionando perfeitamente. Erro 400 foi COMPLETAMENTE CORRIGIDO - dados reais do provider (CPF, endereço) estão sendo salvos e enviados corretamente para API Efi Bank."
 
   - task: "Integração Efi Bank para geração PIX/Boleto"
     implemented: true
