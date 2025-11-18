@@ -193,7 +193,7 @@ MERCADOPAGO_PUBLIC_KEY="..."
 
 ### Frontend (.env)
 ```env
-REACT_APP_BACKEND_URL=https://telecom-control-1.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://ispadmin-1.preview.emergentagent.com
 ```
 
 ---

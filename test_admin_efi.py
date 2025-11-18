@@ -9,7 +9,7 @@ import json
 import time
 
 # Configuration
-BACKEND_URL = "https://telecom-control-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://ispadmin-1.preview.emergentagent.com/api"
 ADMIN_USERNAME = "master"
 ADMIN_PASSWORD = "master123"
 

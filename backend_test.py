@@ -16,7 +16,7 @@ import subprocess
 import os
 
 # Configuration
-BACKEND_URL = "https://telecom-control-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://ispadmin-1.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 MONGO_URL = "mongodb://localhost:27017"
