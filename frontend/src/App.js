@@ -4454,6 +4454,88 @@ const ProviderDashboard = ({ onLogout }) => {
     }
   };
 
+  // Funções para seleção múltipla de parcelas
+  const handleSelectPayment = (paymentId) => {
+    setSelectedPayments(prev => {
+      if (prev.includes(paymentId)) {
+        return prev.filter(id => id !== paymentId);
+      } else {
+        return [...prev, paymentId];
+      }
+    });
+  };
+
+  const handleSelectAllPayments = () => {
+    if (selectedPayments.length === myPayments.length) {
+      setSelectedPayments([]);
+    } else {
+      setSelectedPayments(myPayments.map(p => p.id));
+    }
+  };
+
+  const handleBulkMarkAsPaid = async () => {
+    if (selectedPayments.length === 0) {
+      toast.error("Selecione pelo menos uma parcela");
+      return;
+    }
+
+    if (!window.confirm(`Deseja marcar ${selectedPayments.length} parcela(s) como RECEBIDA?`)) {
+      return;
+    }
+
+    try {
+      setProcessingBulkAction(true);
+      const token = localStorage.getItem("token");
+      
+      // Marcar cada parcela selecionada como paga
+      for (const paymentId of selectedPayments) {
+        await axios.put(`${API}/provider/payments/${paymentId}/status`, 
+          { status: 'paid' },
+          { headers: { Authorization: `Bearer ${token}` }}
+        );
+      }
+      
+      toast.success(`${selectedPayments.length} parcela(s) marcada(s) como recebida!`);
+      setSelectedPayments([]);
+      loadMyPayments();
+    } catch (error) {
+      toast.error("Erro ao atualizar parcelas: " + (error.response?.data?.detail || "Erro desconhecido"));
+    } finally {
+      setProcessingBulkAction(false);
+    }
+  };
+
+  const handleBulkCancel = async () => {
+    if (selectedPayments.length === 0) {
+      toast.error("Selecione pelo menos uma parcela");
+      return;
+    }
+
+    if (!window.confirm(`Deseja CANCELAR ${selectedPayments.length} parcela(s)?`)) {
+      return;
+    }
+
+    try {
+      setProcessingBulkAction(true);
+      const token = localStorage.getItem("token");
+      
+      // Cancelar cada parcela selecionada
+      for (const paymentId of selectedPayments) {
+        await axios.delete(`${API}/provider/payments/${paymentId}`, 
+          { headers: { Authorization: `Bearer ${token}` }}
+        );
+      }
+      
+      toast.success(`${selectedPayments.length} parcela(s) cancelada(s)!`);
+      setSelectedPayments([]);
+      loadMyPayments();
+    } catch (error) {
+      toast.error("Erro ao cancelar parcelas: " + (error.response?.data?.detail || "Erro desconhecido"));
+    } finally {
+      setProcessingBulkAction(false);
+    }
+  };
+
   const handleAcceptTerms = async () => {
     try {
       setAcceptingTerms(true);
