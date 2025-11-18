@@ -9193,8 +9193,8 @@ const ProviderDashboard = ({ onLogout }) => {
 
               {/* Lista de Pagamentos */}
               {myPayments.map((payment) => {
-                const isOverdue = payment.status === 'pending' && new Date(payment.expires_at) < new Date();
-                const isPending = payment.status === 'pending' && new Date(payment.expires_at) >= new Date();
+                const isOverdue = (payment.status === 'pending' || payment.status === 'waiting') && new Date(payment.expires_at) < new Date();
+                const isPending = (payment.status === 'pending' || payment.status === 'waiting') && new Date(payment.expires_at) >= new Date();
                 const isPaid = payment.status === 'paid';
                 const isCanceled = payment.status === 'canceled' || payment.status === 'cancelled';
                 
