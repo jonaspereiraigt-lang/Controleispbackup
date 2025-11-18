@@ -1152,7 +1152,7 @@ def main():
         
         # Exit with appropriate code
         if failed == 0:
-            print("\n🎉 All tests passed! Efi Bank integration is working correctly.")
+            print("\n🎉 All tests passed! Onboarding flow with automatic installments is working correctly.")
             sys.exit(0)
         else:
             print(f"\n⚠️  {failed} test(s) failed. Please check the issues above.")
