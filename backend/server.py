@@ -5968,6 +5968,32 @@ async def get_payment_status(current_user=Depends(get_current_provider)):
         raise HTTPException(status_code=500, detail="Erro ao consultar status do pagamento")
 
 
+@api_router.get("/admin/webhook-logs")
+async def get_webhook_logs(current_user=Depends(get_current_admin)):
+    """Get recent webhook logs for debugging"""
+    try:
+        # Read last 500 lines of backend.out.log
+        import subprocess
+        result = subprocess.run(
+            ["tail", "-n", "500", "/var/log/supervisor/backend.out.log"],
+            capture_output=True,
+            text=True
+        )
+        
+        # Filter only EFI WEBHOOK lines
+        webhook_lines = [line for line in result.stdout.split('\n') if 'EFI WEBHOOK' in line or 'webhook/efi' in line]
+        
+        return {
+            "success": True,
+            "logs": webhook_lines[-50:],  # Last 50 webhook-related logs
+            "total": len(webhook_lines)
+        }
+        
+    except Exception as e:
+        print(f"Error getting webhook logs: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar logs")
+
+
 @api_router.post("/webhook/efi")
 async def efi_webhook_legacy(request: Request):
     """Legacy webhook endpoint - redirects to new endpoint"""
