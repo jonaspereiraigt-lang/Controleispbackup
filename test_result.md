@@ -312,6 +312,8 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Sistema de Notificações em Tempo Real"
+    - "Sistema de Notificações em Tempo Real - Backend"
     - "Sistema de Aprovação/Reprovação de Documentos no Admin Dashboard"
     - "Upload de Logo no cadastro de provedor"
     - "Logo do provedor em contratos/mensagens de cobrança"
