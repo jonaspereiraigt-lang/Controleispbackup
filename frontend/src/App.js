@@ -1238,6 +1238,7 @@ const Login = ({ onLogin }) => {
     nome_fantasia: "",
     email: "",
     password: "",
+    confirmPassword: "",  // Confirmar senha
     cnpj: "",
     cpf: "",  // CPF do responsável
     phone: "",
