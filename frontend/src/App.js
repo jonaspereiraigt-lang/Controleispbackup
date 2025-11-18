@@ -1439,9 +1439,12 @@ const Login = ({ onLogin }) => {
         nome_fantasia: "",
         email: "",
         password: "",
+        confirmPassword: "",
         cnpj: "",
+        cpf: "",
         phone: "",
         address: "",
+        number: "",
         bairro: "",
         cep: "",
         city: "",
@@ -1449,7 +1452,8 @@ const Login = ({ onLogin }) => {
         id_front_photo: null,
         id_back_photo: null,
         holding_id_photo: null,
-        contract_accepted: false
+        contract_accepted: false,
+        due_day: 10
       });
       setLoginMode("provider");
     } catch (error) {
