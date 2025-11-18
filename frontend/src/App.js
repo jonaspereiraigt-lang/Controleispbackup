@@ -1431,7 +1431,12 @@ const Login = ({ onLogin }) => {
     }
     
     try {
-      await axios.post(`${API}/provider/register`, registerData);
+      // Remove confirmPassword before sending (not needed in backend)
+      const { confirmPassword, ...dataToSend } = registerData;
+      
+      console.log("📤 Dados sendo enviados para o backend:", dataToSend);
+      
+      await axios.post(`${API}/provider/register`, dataToSend);
       toast.success("Provedor cadastrado com sucesso! Faça login com suas credenciais.");
       setShowRegister(false);
       setRegisterData({
