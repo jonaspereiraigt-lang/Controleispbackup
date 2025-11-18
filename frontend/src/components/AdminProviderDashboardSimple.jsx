@@ -231,6 +231,7 @@ const AdminProviderDashboardSimple = () => {
     { id: 'contato', label: 'Contato', icon: Phone },
     { id: 'contratos', label: 'Contratos', icon: FileText },
     { id: 'logins', label: 'Logins', icon: Key },
+    { id: 'documentos', label: 'Documentos', icon: Shield },
     { id: 'financeiro', label: 'Financeiro', icon: DollarSign }
   ];
 
