@@ -9134,43 +9134,7 @@ const ProviderDashboard = ({ onLogout }) => {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Seleção Múltipla e Ações em Lote */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedPayments.length === myPayments.length && myPayments.length > 0}
-                      onChange={handleSelectAllPayments}
-                      className="w-4 h-4 text-blue-600 rounded"
-                    />
-                    <span className="text-sm font-medium text-gray-700">
-                      {selectedPayments.length > 0 ? `${selectedPayments.length} selecionada(s)` : 'Selecionar todas'}
-                    </span>
-                  </div>
-                  
-                  {selectedPayments.length > 0 && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleBulkMarkAsPaid}
-                        disabled={processingBulkAction}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
-                      >
-                        ✓ Marcar como Recebidas
-                      </button>
-                      <button
-                        onClick={handleBulkCancel}
-                        disabled={processingBulkAction}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
-                      >
-                        ✗ Cancelar Selecionadas
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Sincronização Manual e Filtros */}
+              {/* Filtros */}
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex gap-2 flex-wrap">
                   <button className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm font-medium">
