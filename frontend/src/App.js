@@ -9271,7 +9271,7 @@ const ProviderDashboard = ({ onLogout }) => {
                     </div>
 
                     {/* Ações */}
-                    {payment.status === 'pending' && (
+                    {(payment.status === 'pending' || payment.status === 'waiting') && (
                       <div className="flex flex-wrap gap-2 pt-3 border-t">
                         {payment.link && (
                           <a
