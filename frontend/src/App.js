@@ -1905,6 +1905,33 @@ const Login = ({ onLogin }) => {
                 </div>
               </div>
 
+              {/* Logo do Provedor */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-red-600" />
+                  Logo da Empresa (Opcional)
+                </h3>
+                <div>
+                  <Label htmlFor="register_logo">Logo do Provedor</Label>
+                  <Input
+                    id="register_logo"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleRegisterFileUpload(e, 'logo_photo')}
+                    data-testid="register-logo-input"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-600 mt-1">
+                    📸 Esta logo aparecerá nos contratos e cobranças que você enviar aos seus clientes
+                  </p>
+                  {registerData.logo_photo && (
+                    <div className="mt-2">
+                      <img src={registerData.logo_photo} alt="Logo" className="w-32 h-32 object-cover rounded border" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Contrato de Aceite do Provedor */}
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
