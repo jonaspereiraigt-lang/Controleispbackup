@@ -1168,6 +1168,66 @@ const AdminProviderDashboardSimple = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Configurações do Sistema */}
+      {showConfigModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-900">🔧 Configurações do Sistema</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL do Backend (Seu Domínio)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://www.controleisp.com.br"
+                  value={systemConfig.backend_url}
+                  onChange={(e) => setSystemConfig(prev => ({...prev, backend_url: e.target.value}))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Esta URL será usada para todas as chamadas da API
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL do Webhook Efi Bank
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://www.controleisp.com.br/api/payment/efi/webhook"
+                  value={systemConfig.webhook_url}
+                  onChange={(e) => setSystemConfig(prev => ({...prev, webhook_url: e.target.value}))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  URL para receber webhooks do Efi Bank
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={handleSaveConfig}
+                disabled={loadingConfig}
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingConfig ? 'Salvando...' : 'Salvar'}
+              </button>
+              <button
+                onClick={() => setShowConfigModal(false)}
+                disabled={loadingConfig}
+                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
