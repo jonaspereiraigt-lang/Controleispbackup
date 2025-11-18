@@ -5968,6 +5968,12 @@ async def get_payment_status(current_user=Depends(get_current_provider)):
         raise HTTPException(status_code=500, detail="Erro ao consultar status do pagamento")
 
 
+@api_router.post("/webhook/efi")
+async def efi_webhook_legacy(request: Request):
+    """Legacy webhook endpoint - redirects to new endpoint"""
+    return await efi_payment_webhook(request)
+
+
 @api_router.post("/payment/efi/webhook")
 async def efi_payment_webhook(request: Request):
     """Handle Efi Bank webhook notifications for payment confirmations"""
