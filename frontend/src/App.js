@@ -4285,14 +4285,13 @@ const ProviderDashboard = ({ onLogout }) => {
     loadClientReminders();
     loadProviderLogo();
     loadProviderNotifications();
-    loadNotifications();
     loadScheduledReminders(); // Carregar agendamentos automaticamente
     loadIntegrationTypes();
     loadProviderIntegrations();
     
     // Recarregar notificações a cada 30 segundos
     const intervalId = setInterval(() => {
-      loadNotifications();
+      loadProviderNotifications();
     }, 30000);
 
     // Cleanup interceptor on unmount
