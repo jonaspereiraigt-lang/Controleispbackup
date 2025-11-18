@@ -713,6 +713,326 @@ class BackendTester:
         except Exception as e:
             self.log_result("Database Payments Check", False, f"Error checking database: {str(e)}")
             return False
+
+    # =============================================================================
+    # ONBOARDING FLOW TESTS - AUTOMATIC INSTALLMENT GENERATION
+    # =============================================================================
+    
+    def test_create_new_provider_with_complete_data(self):
+        """STEP 1: Create a new provider with ALL required data for production Efi Bank"""
+        print("👤 STEP 1: Creating New Provider with Complete Data...")
+        
+        try:
+            # Generate unique data for this test
+            timestamp = int(time.time())
+            
+            # Complete provider data with all required fields for Efi Bank production
+            self.new_provider_data = {
+                "name": "ISP Teste Producao Ltda",
+                "nome_fantasia": "ISP Teste",
+                "email": f"teste.producao.{timestamp}@ispteste.com",
+                "password": "senha123",
+                "cnpj": "12345678000190",
+                "cpf": "12345678901",  # CPF do responsável
+                "phone": "11987654321",
+                "cep": "01310100",
+                "address": "Avenida Paulista",
+                "number": "1578",
+                "bairro": "Bela Vista",
+                "city": "São Paulo",
+                "state": "SP",
+                "id_front_photo": "data:image/png;base64,iVBORw0KGgo=",
+                "id_back_photo": "data:image/png;base64,iVBORw0KGgo=",
+                "holding_id_photo": "data:image/png;base64,iVBORw0KGgo=",
+                "contract_accepted": True,
+                "due_day": 10
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/provider/register",
+                json=self.new_provider_data,
+                timeout=30
+            )
+            
+            if response.status_code == 200 or response.status_code == 201:
+                data = response.json()
+                self.test_provider_id = data.get("provider_id") or data.get("id")
+                self.test_provider_email = self.new_provider_data["email"]
+                self.test_provider_password = self.new_provider_data["password"]
+                
+                self.log_result("Create New Provider", True, f"Provider created successfully: {self.test_provider_id}")
+                return True
+            else:
+                self.log_result("Create New Provider", False, f"HTTP {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("Create New Provider", False, f"Error creating provider: {str(e)}")
+            return False
+    
+    def test_provider_login_first_time(self):
+        """STEP 2: Login provider and verify first_login status"""
+        print("🔑 STEP 2: Testing Provider First Login...")
+        
+        if not self.test_provider_email:
+            self.log_result("Provider First Login", False, "No test provider email available")
+            return False
+        
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/auth/provider/login",
+                json={
+                    "username": self.test_provider_email,
+                    "password": self.test_provider_password
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.provider_token = data.get("access_token")
+                
+                # Verify login response structure
+                expected_fields = ["access_token", "token_type", "user_type", "first_login", "terms_accepted", "financial_generated"]
+                missing_fields = [field for field in expected_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_result("Provider First Login", False, f"Missing fields in response: {missing_fields}", data)
+                    return False
+                
+                # Verify expected values for new provider
+                if data.get("first_login") != True:
+                    self.log_result("Provider First Login", False, f"Expected first_login=true, got {data.get('first_login')}", data)
+                    return False
+                
+                if data.get("terms_accepted") != False:
+                    self.log_result("Provider First Login", False, f"Expected terms_accepted=false, got {data.get('terms_accepted')}", data)
+                    return False
+                
+                if data.get("financial_generated") != False:
+                    self.log_result("Provider First Login", False, f"Expected financial_generated=false, got {data.get('financial_generated')}", data)
+                    return False
+                
+                self.log_result("Provider First Login", True, "Login successful with correct first_login status", {
+                    "first_login": data.get("first_login"),
+                    "terms_accepted": data.get("terms_accepted"),
+                    "financial_generated": data.get("financial_generated")
+                })
+                return True
+            else:
+                self.log_result("Provider First Login", False, f"HTTP {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("Provider First Login", False, f"Error in provider login: {str(e)}")
+            return False
+    
+    def test_accept_terms_and_generate_installments(self):
+        """STEP 3: Accept terms and trigger automatic generation of 12 installments"""
+        print("📋 STEP 3: Accepting Terms and Generating Automatic Installments...")
+        
+        if not self.provider_token:
+            self.log_result("Accept Terms", False, "No provider token available")
+            return False
+        
+        try:
+            # Create provider session
+            provider_session = requests.Session()
+            provider_session.headers.update({
+                "Authorization": f"Bearer {self.provider_token}",
+                "Content-Type": "application/json"
+            })
+            
+            response = provider_session.post(
+                f"{BACKEND_URL}/provider/accept-terms",
+                timeout=120  # Longer timeout for installment generation
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if response indicates success
+                if not data.get("success"):
+                    self.log_result("Accept Terms", False, "Response indicates failure", data)
+                    return False
+                
+                # Verify expected response structure
+                expected_fields = ["success", "message", "payments_generated"]
+                present_fields = [field for field in expected_fields if field in data]
+                
+                if len(present_fields) < 2:  # At least success and message should be present
+                    self.log_result("Accept Terms", False, f"Missing expected fields. Present: {present_fields}", data)
+                    return False
+                
+                # Check if payments were generated
+                payments_generated = data.get("payments_generated", 0)
+                if payments_generated < 12:
+                    self.log_result("Accept Terms", False, f"Expected 12 payments, got {payments_generated}", data)
+                    return False
+                
+                self.log_result("Accept Terms", True, f"Terms accepted and {payments_generated} installments generated", {
+                    "payments_generated": payments_generated,
+                    "first_due_date": data.get("first_due_date"),
+                    "total_amount": data.get("total_amount")
+                })
+                return True
+            
+            elif response.status_code == 400:
+                # This is the error we're testing for - should be fixed now
+                error_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+                self.log_result("Accept Terms", False, f"ERROR 400 - Provider data validation failed", error_data)
+                return False
+            else:
+                self.log_result("Accept Terms", False, f"HTTP {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("Accept Terms", False, f"Error accepting terms: {str(e)}")
+            return False
+    
+    def test_verify_generated_installments(self):
+        """STEP 4: Verify that 12 installments were generated with correct values"""
+        print("🔍 STEP 4: Verifying Generated Installments...")
+        
+        if not self.provider_token:
+            self.log_result("Verify Installments", False, "No provider token available")
+            return False
+        
+        try:
+            # Create provider session
+            provider_session = requests.Session()
+            provider_session.headers.update({
+                "Authorization": f"Bearer {self.provider_token}"
+            })
+            
+            response = provider_session.get(
+                f"{BACKEND_URL}/provider/my-payments",
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                payments = data.get("payments", []) if isinstance(data, dict) else data
+                
+                # Verify we have 12 payments
+                if len(payments) != 12:
+                    self.log_result("Verify Installments", False, f"Expected 12 payments, found {len(payments)}")
+                    return False
+                
+                # Verify payment structure and values
+                issues = []
+                total_amount = 0
+                
+                for i, payment in enumerate(payments, 1):
+                    # Check required fields
+                    required_fields = ["payment_id", "link", "pdf", "barcode", "status", "amount", "created_at", "expires_at"]
+                    missing_fields = [field for field in required_fields if not payment.get(field)]
+                    
+                    if missing_fields:
+                        issues.append(f"Payment {i}: Missing fields {missing_fields}")
+                        continue
+                    
+                    # Verify payment values based on installment rules
+                    amount = payment.get("amount", 0)
+                    total_amount += amount
+                    
+                    # Check installment amounts (1st: proportional, 2nd-3rd: 99.90, 4th-12th: 199.90)
+                    installment_number = payment.get("installment_number", i)
+                    
+                    if installment_number == 1:
+                        # First installment should be proportional (variable amount)
+                        if amount <= 0 or amount > 99.90:
+                            issues.append(f"Payment {i}: Invalid proportional amount {amount}")
+                    elif installment_number in [2, 3]:
+                        # Promotional installments
+                        if amount != 99.90:
+                            issues.append(f"Payment {i}: Expected 99.90, got {amount}")
+                    elif 4 <= installment_number <= 12:
+                        # Full price installments
+                        if amount != 199.90:
+                            issues.append(f"Payment {i}: Expected 199.90, got {amount}")
+                    
+                    # Verify status
+                    if payment.get("status") != "pending":
+                        issues.append(f"Payment {i}: Expected status 'pending', got '{payment.get('status')}'")
+                    
+                    # Verify Efi Bank fields are present and valid
+                    link = payment.get("link", "")
+                    pdf = payment.get("pdf", "")
+                    
+                    if not link or not link.startswith("https://"):
+                        issues.append(f"Payment {i}: Invalid or missing link")
+                    
+                    if not pdf or not pdf.startswith("https://"):
+                        issues.append(f"Payment {i}: Invalid or missing PDF")
+                
+                if issues:
+                    self.log_result("Verify Installments", False, f"Found {len(issues)} issues in payments", issues[:5])  # Show first 5 issues
+                    return False
+                
+                self.log_result("Verify Installments", True, f"All 12 installments verified successfully", {
+                    "total_payments": len(payments),
+                    "total_amount": total_amount,
+                    "first_payment_amount": payments[0].get("amount") if payments else 0,
+                    "promotional_amount": 99.90,
+                    "full_amount": 199.90
+                })
+                return True
+            else:
+                self.log_result("Verify Installments", False, f"HTTP {response.status_code}", response.text)
+                return False
+                
+        except Exception as e:
+            self.log_result("Verify Installments", False, f"Error verifying installments: {str(e)}")
+            return False
+    
+    def test_check_backend_logs_for_errors(self):
+        """Check backend logs for any errors during installment generation"""
+        print("📋 Checking Backend Logs for Errors...")
+        
+        try:
+            # Check supervisor backend logs
+            result = subprocess.run(
+                ["tail", "-n", "100", "/var/log/supervisor/backend.err.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                log_content = result.stdout
+                
+                # Look for error patterns
+                error_patterns = [
+                    "ERROR",
+                    "400",
+                    "parcela",
+                    "boleto",
+                    "Efi",
+                    "CPF inválido",
+                    "Dados de endereço incompletos"
+                ]
+                
+                found_errors = []
+                for line in log_content.split('\n')[-20:]:  # Check last 20 lines
+                    for pattern in error_patterns:
+                        if pattern.lower() in line.lower():
+                            found_errors.append(line.strip())
+                            break
+                
+                if found_errors:
+                    self.log_result("Backend Logs Check", False, f"Found {len(found_errors)} potential errors", found_errors[:3])
+                    return False
+                else:
+                    self.log_result("Backend Logs Check", True, "No errors found in recent backend logs")
+                    return True
+            else:
+                self.log_result("Backend Logs Check", False, f"Could not read backend logs: {result.stderr}")
+                return False
+                
+        except Exception as e:
+            self.log_result("Backend Logs Check", False, f"Error checking logs: {str(e)}")
+            return False
     
     def cleanup(self):
         """Clean up test data"""
