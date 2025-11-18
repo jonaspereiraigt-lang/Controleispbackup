@@ -5407,6 +5407,75 @@ async def get_my_payments(current_user=Depends(get_current_provider)):
         raise HTTPException(status_code=500, detail="Erro ao buscar pagamentos")
 
 
+@api_router.put("/provider/payments/{payment_id}/status")
+async def update_payment_status(
+    payment_id: str,
+    status_data: dict,
+    current_user=Depends(get_current_provider)
+):
+    """Update payment status (mark as paid)"""
+    provider_id = current_user["user_id"]
+    
+    try:
+        # Verify payment belongs to this provider
+        payment = await db.payments.find_one({"id": payment_id, "provider_id": provider_id})
+        if not payment:
+            raise HTTPException(status_code=404, detail="Pagamento não encontrado")
+        
+        new_status = status_data.get("status")
+        if new_status not in ["paid", "pending", "cancelled"]:
+            raise HTTPException(status_code=400, detail="Status inválido")
+        
+        # Update payment status
+        result = await db.payments.update_one(
+            {"id": payment_id},
+            {"$set": {
+                "status": new_status,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if result.modified_count > 0:
+            return {"success": True, "message": f"Pagamento marcado como {new_status}"}
+        else:
+            raise HTTPException(status_code=500, detail="Erro ao atualizar pagamento")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating payment status: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao atualizar pagamento")
+
+
+@api_router.delete("/provider/payments/{payment_id}")
+async def delete_payment(
+    payment_id: str,
+    current_user=Depends(get_current_provider)
+):
+    """Delete/cancel a payment"""
+    provider_id = current_user["user_id"]
+    
+    try:
+        # Verify payment belongs to this provider
+        payment = await db.payments.find_one({"id": payment_id, "provider_id": provider_id})
+        if not payment:
+            raise HTTPException(status_code=404, detail="Pagamento não encontrado")
+        
+        # Delete payment
+        result = await db.payments.delete_one({"id": payment_id})
+        
+        if result.deleted_count > 0:
+            return {"success": True, "message": "Pagamento cancelado com sucesso"}
+        else:
+            raise HTTPException(status_code=500, detail="Erro ao cancelar pagamento")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting payment: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao cancelar pagamento")
+
+
 @api_router.post("/validate/cnpj")
 async def validate_cnpj_endpoint(data: dict):
     """Endpoint para validar e consultar dados de CNPJ"""
