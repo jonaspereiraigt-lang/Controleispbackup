@@ -1498,13 +1498,19 @@ async def create_efi_boleto_payment(provider_id: str, amount: float = 199.00, du
         if not provider:
             raise HTTPException(status_code=404, detail="Provedor não encontrado")
         
-        # Prepare provider data
+        # Prepare provider data with all required fields for Efi Bank production API
         provider_data = {
             "provider_id": provider_id,
-            "name": provider.get("name", "Nome do Provedor"),
-            "email": provider.get("email", "email@provedor.com"),
+            "name": provider.get("name", ""),
+            "email": provider.get("email", ""),
             "cpf": provider.get("cpf", ""),
-            "phone": provider.get("phone", "")
+            "phone": provider.get("phone", ""),
+            "cep": provider.get("cep", ""),
+            "address": provider.get("address", ""),
+            "number": provider.get("number", ""),
+            "bairro": provider.get("bairro", ""),
+            "city": provider.get("city", ""),
+            "state": provider.get("state", "")
         }
         
         # Create boleto via Efi Bank
