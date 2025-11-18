@@ -105,6 +105,30 @@
 user_problem_statement: "Erro 400 ao gerar parcelas automáticas no ambiente de produção do Efi Bank quando provedor aceita os termos. Também adicionar validação de confirmação de senha no formulário de registro."
 
 frontend:
+  - task: "Upload de Logo no cadastro de provedor"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Adicionado campo de upload de logo no formulário de registro do provedor. Campo opcional logo_photo adicionado ao registerData. Campo posicionado após as fotos de identificação e antes do contrato. Backend atualizado: modelo ProviderCreate com campo logo_photo opcional, endpoint /provider/register processa upload da logo para Cloudflare R2 e salva URL no campo logo_url do provider. Logo aparecerá nos contratos e mensagens de cobrança."
+
+  - task: "Logo do provedor em contratos/mensagens de cobrança"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Adicionada logo do provedor no cabeçalho dos contratos gerados (endpoint /provider/contract/{client_id}). Se o provedor possui logo_url, ela é incluída no formato [LOGO DO PROVEDOR: {url}] no início do contrato, logo após o título. Isso permite que o frontend mostre a logo ao exibir o contrato."
+
   - task: "Campo Confirmar Senha no formulário de registro"
     implemented: true
     working: "NA"
