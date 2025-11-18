@@ -440,6 +440,51 @@ class EfiPaymentService:
                 "success": False,
                 "error": str(e)
             }
+    
+    def get_notification_details(self, notification_token: str) -> Dict[str, Any]:
+        """
+        Get notification details from Efi Bank
+        
+        Args:
+            notification_token: Notification token from webhook
+            
+        Returns:
+            Dictionary with notification details including charge_id and status
+        """
+        try:
+            logger.info(f"Getting notification details for token: {notification_token}")
+            
+            params = {"token": notification_token}
+            response = self.gn.get_notification(params=params)
+            
+            if response.get("code") == 200:
+                data = response.get("data", [])
+                
+                if isinstance(data, list) and len(data) > 0:
+                    charge_data = data[0]
+                    
+                    logger.info(f"Notification details: {charge_data}")
+                    
+                    return {
+                        "notification_type": "charge",
+                        "data": {
+                            "charge_id": charge_data.get("charge_id", ""),
+                            "status": charge_data.get("status", {}).get("current", ""),
+                            "value": charge_data.get("value", 0) / 100,  # Convert from cents
+                            "paid_at": charge_data.get("paid_at", ""),
+                            "payment_method": charge_data.get("payment", "")
+                        }
+                    }
+                else:
+                    logger.error(f"No data in notification response: {response}")
+                    return None
+            else:
+                logger.error(f"Failed to get notification details: {response}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting notification details: {str(e)}")
+            return None
 
 # Create global instance (lazy initialization)
 efi_service = None
