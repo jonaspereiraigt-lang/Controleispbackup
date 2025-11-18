@@ -4454,6 +4454,28 @@ const ProviderDashboard = ({ onLogout }) => {
     }
   };
 
+  const handleSyncPayments = async () => {
+    try {
+      setLoadingPayments(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.post(`${API}/provider/sync-payments`, {},
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      if (response.data.synced > 0) {
+        toast.success(`${response.data.synced} pagamento(s) sincronizado(s) com Efi Bank!`);
+      } else {
+        toast.info("Todos os pagamentos já estão sincronizados");
+      }
+      
+      loadMyPayments();
+    } catch (error) {
+      toast.error("Erro ao sincronizar: " + (error.response?.data?.detail || "Erro desconhecido"));
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
   // Funções para seleção múltipla de parcelas
   const handleSelectPayment = (paymentId) => {
     setSelectedPayments(prev => {
