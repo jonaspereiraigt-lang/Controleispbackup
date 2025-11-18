@@ -1385,15 +1385,40 @@ const Login = ({ onLogin }) => {
     e.preventDefault();
     setLoading(true);
     
+    // Validação de confirmação de senha
+    if (registerData.password !== registerData.confirmPassword) {
+      toast.error("As senhas não coincidem! Por favor, verifique.");
+      setLoading(false);
+      return;
+    }
+    
     // Validação rigorosa dos campos obrigatórios
     const requiredFields = [
-      'name', 'nome_fantasia', 'email', 'password', 'cnpj', 'phone', 
-      'address', 'bairro', 'cep', 'city', 'state', 'id_front_photo', 'id_back_photo', 'holding_id_photo'
+      'name', 'nome_fantasia', 'email', 'password', 'cnpj', 'cpf', 'phone', 
+      'address', 'number', 'bairro', 'cep', 'city', 'state', 'id_front_photo', 'id_back_photo', 'holding_id_photo'
     ];
     
     for (let field of requiredFields) {
       if (!registerData[field] || registerData[field] === '') {
-        toast.error(`Campo obrigatório não preenchido: ${field}`);
+        const fieldNames = {
+          'name': 'Razão Social',
+          'nome_fantasia': 'Nome Fantasia',
+          'email': 'E-mail',
+          'password': 'Senha',
+          'cnpj': 'CNPJ',
+          'cpf': 'CPF do Responsável',
+          'phone': 'Telefone',
+          'address': 'Endereço',
+          'number': 'Número',
+          'bairro': 'Bairro',
+          'cep': 'CEP',
+          'city': 'Cidade',
+          'state': 'Estado',
+          'id_front_photo': 'Foto Frente do RG/CNH',
+          'id_back_photo': 'Foto Verso do RG/CNH',
+          'holding_id_photo': 'Foto Segurando RG/CNH'
+        };
+        toast.error(`Campo obrigatório não preenchido: ${fieldNames[field] || field}`);
         setLoading(false);
         return;
       }
