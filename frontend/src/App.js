@@ -4146,6 +4146,7 @@ const ProviderDashboard = ({ onLogout }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   
   // First login / terms modal states
