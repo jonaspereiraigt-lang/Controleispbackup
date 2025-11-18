@@ -9227,7 +9227,8 @@ const ProviderDashboard = ({ onLogout }) => {
                           className="w-4 h-4 text-blue-600 rounded"
                         />
                         <div className={`w-3 h-3 rounded-full ${
-                          payment.status === 'paid' ? 'bg-green-500' :
+                          isPaid ? 'bg-green-500' :
+                          isCanceled ? 'bg-gray-400' :
                           isOverdue ? 'bg-red-500' :
                           'bg-yellow-500'
                         }`} />
@@ -9235,6 +9236,8 @@ const ProviderDashboard = ({ onLogout }) => {
                           <h4 className="font-semibold text-gray-900">
                             {payment.payment_method === 'boleto' ? '📄 Boleto Bancário' : '💳 PIX'}
                             {isOverdue && <span className="ml-2 text-xs text-red-600 font-bold">⚠️ ATRASADO</span>}
+                            {isCanceled && <span className="ml-2 text-xs text-gray-600 font-bold">❌ CANCELADO</span>}
+                            {isPaid && <span className="ml-2 text-xs text-green-600 font-bold">✅ RECEBIDO</span>}
                           </h4>
                           <p className="text-sm text-gray-500">ID: {payment.payment_id || payment.id}</p>
                         </div>
@@ -9243,12 +9246,13 @@ const ProviderDashboard = ({ onLogout }) => {
                         <p className="text-lg font-bold text-gray-900">
                           R$ {payment.amount ? payment.amount.toFixed(2) : '0.00'}
                         </p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          payment.status === 'paid' ? 'bg-green-100 text-green-800' :
+                        <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                          isPaid ? 'bg-green-100 text-green-800' :
+                          isCanceled ? 'bg-gray-100 text-gray-700' :
                           isOverdue ? 'bg-red-100 text-red-800' :
                           'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {payment.status === 'paid' ? 'Pago' : isOverdue ? 'Atrasado' : 'Em Aberto'}
+                          {isPaid ? 'Recebido' : isCanceled ? 'Cancelado' : isOverdue ? 'Atrasado' : 'Em Aberto'}
                         </span>
                       </div>
                     </div>
