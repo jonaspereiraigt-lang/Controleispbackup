@@ -3685,6 +3685,16 @@ async def mark_all_notifications_as_read(current_user=Depends(get_current_provid
 # Provider Registration (Public endpoint)
 @api_router.post("/provider/register")
 async def register_provider(provider_data: ProviderCreate, request: Request):
+    print(f"[REGISTER] Dados recebidos:")
+    print(f"  - CPF: {provider_data.cpf}")
+    print(f"  - CEP: {provider_data.cep}")
+    print(f"  - Endereço: {provider_data.address}")
+    print(f"  - Número: {provider_data.number}")
+    print(f"  - Bairro: {provider_data.bairro}")
+    print(f"  - Cidade: {provider_data.city}")
+    print(f"  - Estado: {provider_data.state}")
+    print(f"  - Fotos: front={len(provider_data.id_front_photo) if provider_data.id_front_photo else 0}, back={len(provider_data.id_back_photo) if provider_data.id_back_photo else 0}, holding={len(provider_data.holding_id_photo) if provider_data.holding_id_photo else 0}")
+    
     if not validate_cnpj(provider_data.cnpj):
         raise HTTPException(status_code=400, detail="CNPJ inválido")
         
