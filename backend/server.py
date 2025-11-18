@@ -5514,6 +5514,81 @@ async def delete_payment(
         raise HTTPException(status_code=500, detail="Erro ao cancelar pagamento")
 
 
+@api_router.post("/provider/sync-payments")
+async def sync_payments_with_efi(current_user=Depends(get_current_provider)):
+    """Manually sync payment statuses with Efi Bank"""
+    provider_id = current_user["user_id"]
+    
+    try:
+        # Get all pending payments for this provider
+        payments = await db.payments.find({
+            "provider_id": provider_id,
+            "status": {"$in": ["pending", "waiting"]}
+        }).to_list(length=None)
+        
+        if not payments:
+            return {"success": True, "message": "Nenhum pagamento pendente para sincronizar", "synced": 0}
+        
+        synced_count = 0
+        updated_payments = []
+        
+        for payment in payments:
+            charge_id = payment.get("charge_id")
+            
+            if not charge_id:
+                continue
+            
+            try:
+                # Get status from Efi Bank
+                result = get_efi_service().get_charge_status(int(charge_id))
+                
+                if result.get("success"):
+                    efi_status = result.get("status", "")
+                    
+                    # Map Efi status to our status
+                    new_status = None
+                    if efi_status in ["paid", "settled"]:
+                        new_status = "paid"
+                    elif efi_status in ["canceled", "cancelled"]:
+                        new_status = "cancelled"
+                    
+                    if new_status and new_status != payment.get("status"):
+                        # Update payment status
+                        await db.payments.update_one(
+                            {"_id": payment["_id"]},
+                            {"$set": {
+                                "status": new_status,
+                                "paid_at": datetime.now(timezone.utc).isoformat() if new_status == "paid" else None,
+                                "updated_at": datetime.now(timezone.utc).isoformat()
+                            }}
+                        )
+                        
+                        synced_count += 1
+                        updated_payments.append({
+                            "payment_id": payment.get("id"),
+                            "charge_id": charge_id,
+                            "old_status": payment.get("status"),
+                            "new_status": new_status
+                        })
+                        
+                        print(f"[SYNC] Payment {payment.get('id')} updated: {payment.get('status')} -> {new_status}")
+            
+            except Exception as e:
+                print(f"[SYNC] Error syncing payment {payment.get('id')}: {e}")
+                continue
+        
+        return {
+            "success": True,
+            "message": f"{synced_count} pagamento(s) sincronizado(s)",
+            "synced": synced_count,
+            "updated_payments": updated_payments
+        }
+        
+    except Exception as e:
+        print(f"Error syncing payments: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao sincronizar pagamentos")
+
+
 @api_router.post("/validate/cnpj")
 async def validate_cnpj_endpoint(data: dict):
     """Endpoint para validar e consultar dados de CNPJ"""
