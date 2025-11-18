@@ -9156,11 +9156,12 @@ const ProviderDashboard = ({ onLogout }) => {
               </div>
 
               {/* Lista de Pagamentos */}
-              {myPayments.map((payment) => {
+              {myPayments
+                .filter(payment => payment.status !== 'canceled' && payment.status !== 'cancelled')
+                .map((payment) => {
                 const isOverdue = (payment.status === 'pending' || payment.status === 'waiting') && new Date(payment.expires_at) < new Date();
                 const isPending = (payment.status === 'pending' || payment.status === 'waiting') && new Date(payment.expires_at) >= new Date();
                 const isPaid = payment.status === 'paid';
-                const isCanceled = payment.status === 'canceled' || payment.status === 'cancelled';
                 
                 return (
                   <div 
