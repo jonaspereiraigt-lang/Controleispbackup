@@ -3725,14 +3725,27 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
     if provider_data.due_day not in [5, 10, 15, 20, 25]:
         raise HTTPException(status_code=400, detail="Dia de vencimento deve ser 5, 10, 15, 20 ou 25")
     
+    print(f"[REGISTER] Verificando se já existe provedor...")
+    print(f"  - Email a buscar: '{provider_data.email}'")
+    print(f"  - CNPJ a buscar: '{provider_data.cnpj}'")
+    
     existing_provider = await db.providers.find_one({
         "$or": [
             {"email": provider_data.email},
             {"cnpj": provider_data.cnpj}
         ]
     })
+    
+    print(f"[REGISTER] Resultado da busca: {existing_provider is not None}")
+    
     if existing_provider:
+        print(f"[REGISTER] ❌ Provedor já existe!")
+        print(f"  - Nome encontrado: {existing_provider.get('nome_fantasia')}")
+        print(f"  - Email encontrado: {existing_provider.get('email')}")
+        print(f"  - CNPJ encontrado: {existing_provider.get('cnpj')}")
         raise HTTPException(status_code=400, detail="Provedor já existe com estes dados")
+    
+    print(f"[REGISTER] ✅ Provedor não existe, prosseguindo com cadastro...")
     
     # Get client IP
     client_ip = request.client.host if request.client else "unknown"
