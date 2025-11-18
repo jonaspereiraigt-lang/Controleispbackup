@@ -6073,6 +6073,36 @@ async def efi_payment_webhook(request: Request):
                     
                     if update_result.modified_count > 0:
                         print(f"[EFI WEBHOOK] ✅ Payment status updated to: {new_status}")
+                        
+                        # Create notification for provider
+                        provider_id = payment_record.get("provider_id")
+                        amount = payment_record.get("amount", 0)
+                        
+                        notification_message = ""
+                        notification_type = ""
+                        
+                        if new_status == "paid":
+                            notification_message = f"💰 Pagamento confirmado! Parcela de R$ {amount:.2f} foi paga via Efi Bank."
+                            notification_type = "payment_confirmed"
+                        elif new_status in ["cancelled", "canceled"]:
+                            notification_message = f"❌ Cobrança cancelada no Efi Bank. Parcela de R$ {amount:.2f}."
+                            notification_type = "payment_cancelled"
+                        
+                        if notification_message and provider_id:
+                            notification = {
+                                "id": str(uuid.uuid4()),
+                                "provider_id": provider_id,
+                                "type": notification_type,
+                                "message": notification_message,
+                                "payment_id": payment_record.get("id"),
+                                "charge_id": str(charge_id),
+                                "amount": amount,
+                                "is_read": False,
+                                "created_at": datetime.now(timezone.utc).isoformat()
+                            }
+                            
+                            await db.notifications.insert_one(notification)
+                            print(f"[EFI WEBHOOK] ✅ Notification created for provider {provider_id}")
                     else:
                         print(f"[EFI WEBHOOK] ⚠️ Payment status not modified (already up to date)")
                     
