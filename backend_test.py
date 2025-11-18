@@ -732,8 +732,8 @@ class BackendTester:
                 "nome_fantasia": "ISP Teste",
                 "email": f"teste.producao.{timestamp}@ispteste.com",
                 "password": "senha123",
-                "cnpj": "12345678000190",
-                "cpf": "12345678901",  # CPF do responsável
+                "cnpj": "11222333000181",  # Valid CNPJ
+                "cpf": "11144477735",  # Valid CPF do responsável
                 "phone": "11987654321",
                 "cep": "01310100",
                 "address": "Avenida Paulista",
