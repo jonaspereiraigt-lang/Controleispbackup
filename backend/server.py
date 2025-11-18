@@ -750,6 +750,10 @@ class Provider(BaseModel):
     first_login_completed: bool = False  # Se já fez primeiro login
     terms_accepted: bool = False  # Se aceitou os termos no primeiro login
     terms_accepted_at: Optional[datetime] = None
+    document_status: str = "pending"  # Status de verificação dos documentos: pending, approved, rejected
+    document_verified_at: Optional[datetime] = None  # Data de verificação dos documentos
+    document_verified_by: Optional[str] = None  # ID do admin que verificou
+    document_rejection_reason: Optional[str] = None  # Motivo da reprovação (se aplicável)
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
