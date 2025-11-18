@@ -4472,10 +4472,50 @@ const ProviderDashboard = ({ onLogout }) => {
       }
       
       loadMyPayments();
+      loadNotifications(); // Recarregar notificações após sync
     } catch (error) {
       toast.error("Erro ao sincronizar: " + (error.response?.data?.detail || "Erro desconhecido"));
     } finally {
       setLoadingPayments(false);
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API}/provider/notifications`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setNotifications(response.data.notifications || []);
+      setUnreadCount(response.data.unread_count || 0);
+    } catch (error) {
+      console.error("Erro ao carregar notificações:", error);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`${API}/provider/notifications/${notificationId}/read`, {},
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      loadNotifications();
+    } catch (error) {
+      console.error("Erro ao marcar notificação:", error);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`${API}/provider/notifications/mark-all-read`, {},
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      loadNotifications();
+      toast.success("Todas as notificações marcadas como lidas");
+    } catch (error) {
+      toast.error("Erro ao marcar notificações");
     }
   };
 
