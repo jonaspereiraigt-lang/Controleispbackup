@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Investigar por que os boletos gerados pelo admin não estão aparecendo no financeiro do provedor e na consulta do admin"
+user_problem_statement: "Erro 400 ao gerar parcelas automáticas no ambiente de produção do Efi Bank quando provedor aceita os termos. Também adicionar validação de confirmação de senha no formulário de registro."
 
 frontend:
   - task: "Correção erro React DOM insertBefore e removeChild"
