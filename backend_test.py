@@ -726,13 +726,25 @@ class BackendTester:
             # Generate unique data for this test
             timestamp = int(time.time())
             
+            # Generate a unique but valid CNPJ by modifying the last digits
+            base_cnpj = "11222333000"
+            unique_suffix = str(timestamp)[-3:]  # Last 3 digits of timestamp
+            test_cnpj = base_cnpj + unique_suffix
+            
+            # Validate and adjust if needed
+            import brazilnum.cnpj as cnpj_utils
+            if not cnpj_utils.validate_cnpj(test_cnpj):
+                # Fallback to known valid CNPJs with timestamp variation
+                valid_cnpjs = ["11222333000181", "11444777000161", "11555888000171"]
+                test_cnpj = valid_cnpjs[timestamp % len(valid_cnpjs)]
+            
             # Complete provider data with all required fields for Efi Bank production
             self.new_provider_data = {
-                "name": "ISP Teste Producao Ltda",
-                "nome_fantasia": "ISP Teste",
+                "name": f"ISP Teste Producao {timestamp} Ltda",
+                "nome_fantasia": f"ISP Teste {timestamp}",
                 "email": f"teste.producao.{timestamp}@ispteste.com",
                 "password": "senha123",
-                "cnpj": "11222333000181",  # Valid CNPJ
+                "cnpj": test_cnpj,  # Unique valid CNPJ
                 "cpf": "11144477735",  # Valid CPF do responsável
                 "phone": "11987654321",
                 "cep": "01310100",
