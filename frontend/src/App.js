@@ -1239,8 +1239,10 @@ const Login = ({ onLogin }) => {
     email: "",
     password: "",
     cnpj: "",
+    cpf: "",  // CPF do responsável
     phone: "",
     address: "",
+    number: "",  // Número do endereço
     bairro: "",
     cep: "",
     city: "",
