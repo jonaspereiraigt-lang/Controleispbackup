@@ -3685,9 +3685,19 @@ async def mark_all_notifications_as_read(current_user=Depends(get_current_provid
 # Provider Registration (Public endpoint)
 @api_router.post("/provider/register")
 async def register_provider(provider_data: ProviderCreate, request: Request):
-    print(f"[REGISTER] Dados recebidos:")
+    # Limpar formatação de CPF, CEP, CNPJ e Telefone (remover pontos, traços, parênteses, espaços)
+    import re
+    
+    provider_data.cpf = re.sub(r'\D', '', provider_data.cpf) if provider_data.cpf else ""
+    provider_data.cep = re.sub(r'\D', '', provider_data.cep) if provider_data.cep else ""
+    provider_data.cnpj = re.sub(r'\D', '', provider_data.cnpj) if provider_data.cnpj else ""
+    provider_data.phone = re.sub(r'\D', '', provider_data.phone) if provider_data.phone else ""
+    
+    print(f"[REGISTER] Dados recebidos (LIMPOS):")
     print(f"  - CPF: {provider_data.cpf}")
     print(f"  - CEP: {provider_data.cep}")
+    print(f"  - Telefone: {provider_data.phone}")
+    print(f"  - CNPJ: {provider_data.cnpj}")
     print(f"  - Endereço: {provider_data.address}")
     print(f"  - Número: {provider_data.number}")
     print(f"  - Bairro: {provider_data.bairro}")
