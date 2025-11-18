@@ -6149,6 +6149,19 @@ async def efi_payment_webhook(request: Request):
             
             print(f"[EFI WEBHOOK] Charge ID: {charge_id}, Status: {status}")
             
+            # If status is still "new", fetch real status from Efi API
+            if status == "new" and charge_id:
+                print(f"[EFI WEBHOOK] Status is 'new', fetching real status from Efi API...")
+                efi_service = get_efi_service()
+                charge_details = efi_service.get_charge_details(int(charge_id))
+                
+                if charge_details.get("success"):
+                    real_status = charge_details.get("status", "")
+                    print(f"[EFI WEBHOOK] Real status from Efi API: {real_status}")
+                    status = real_status
+                else:
+                    print(f"[EFI WEBHOOK] Failed to get real status from Efi API")
+            
             if charge_id:
                 # Find payment record - try both payment_id and charge_id
                 payment_record = await db.payments.find_one({
