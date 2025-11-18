@@ -3646,9 +3646,14 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
         username=provider_data.email,  # Usar email como username
         password_hash=hash_password(provider_data.password),
         cnpj=provider_data.cnpj,
+        cpf=provider_data.cpf,  # CPF do responsável
         phone=provider_data.phone,
-        address=provider_data.address,
-        bairro=provider_data.bairro,
+        cep=provider_data.cep,  # CEP
+        address=provider_data.address,  # Rua/Avenida
+        number=provider_data.number,  # Número
+        bairro=provider_data.bairro,  # Bairro
+        city=provider_data.city,  # Cidade
+        state=provider_data.state,  # Estado
         id_front_photo=provider_data.id_front_photo,
         id_back_photo=provider_data.id_back_photo,
         holding_id_photo=provider_data.holding_id_photo,
