@@ -1,96 +1,86 @@
 <analysis>
-The trajectory details the cloning and enhancement of a full-stack application, ControleIsp. The process began with cloning a GitHub repository and setting up the React/FastAPI/MongoDB environment. A significant portion of the effort was dedicated to troubleshooting a complex custom domain setup on the Emergent platform, involving multiple incorrect IP addresses and DNS configurations before finally resolving it with Cloudflare IPs confirmed by support.
+The trajectory details the extensive development and debugging of a full-stack ISP management application, ControleIsp 2025. The work focused on migrating the payment system from Mercado Pago to Efi Bank and building out a comprehensive admin and provider dashboard.
 
-Key feature development included disabling the existing Mercado Pago integration and implementing a new one with Efi Bank for generating PIX/boletos for provider subscriptions. This involved creating a new service file (), adding new API endpoints, and debugging  errors, indicating a need for valid sandbox credentials.
+The process involved multiple complex debugging cycles. A critical issue was the corruption of provider data (,  becoming ) due to a flawed PUT endpoint, which caused providers to disappear from the admin list. This was resolved by fixing the endpoint to only update provided fields and running a data migration script. Another major bug involved a silent failure in the automatic installment generation, where the system would mark financials as generated even if all API calls to Efi Bank failed due to invalid data in the production environment. This was fixed by adding robust error handling to ensure at least one installment is created successfully.
 
-A new IXC-inspired admin dashboard was created for provider management, including CRUD operations and a financial generation workflow. This feature introduced a persistent React DOM error (), which the AI was actively trying to fix by refactoring the component rendering from conditional logic to a modal-based approach. The project's final state is feature-rich but blocked by the Efi credential issue and the frontend DOM error.
+Feature development was iterative, based on user requests. A key feature implemented is a new provider onboarding flow where the provider selects a due date, and upon first login, must accept terms via a full-screen overlay, which then automatically triggers the generation of a 12-month payment plan with promotional pricing. The integration with Efi Bank was successfully toggled between sandbox and production environments, and an issue with R2 image uploads being blocked by subscription checks was also resolved.
 
-The user's primary language is Portuguese (pt-br). The next agent MUST respond in Portuguese.
+The user's primary language is Portuguese (pt-br). The next agent **MUST** respond in Portuguese.
 </analysis>
 
 <product_requirements>
-The primary objective is to create ControleIsp 2025, a functional clone and enhancement of an existing FastAPI/React/MongoDB application named ContoleIsp.
+The project is to build ControleIsp 2025, an ISP management portal. The core goal is to replace the old payment system with Efi Bank for generating PIX/Boleto charges and to provide robust dashboards for both administrators and their providers.
 
-**Completed Requirements:**
-1.  **Project Cloning:** Successfully cloned the application from the user's GitHub repository.
-2.  **Custom Domain:** Configured the custom domain  to point to the new deployment, resolving complex DNS and IP issues.
-3.  **Payment Gateway Switch:** The existing Mercado Pago integration has been disabled. A new integration with Efi Bank (formerly Gerencianet) has been partially implemented for provider billing.
-4.  **Admin Dashboard:** A new admin dashboard, inspired by IXC software, has been developed. It includes features for provider management (CRUD).
-5.  **Provider Activation Workflow:** A new flow was implemented where newly registered providers remain in a pending state until an admin manually generates their first financial charge (boleto/PIX via Efi Bank), after which their access is fully enabled.
-
-**Pending Implementation:**
--   The Efi Bank integration is not fully functional due to invalid API credentials, resulting in  errors.
--   A persistent frontend runtime error () is breaking the admin dashboard functionality.
+**Implemented Features:**
+- **Admin & Provider Dashboards:** Separate interfaces for system administration and provider self-service.
+- **Efi Bank Integration:** Handles PIX/Boleto generation, supporting both Sandbox and Production environments.
+- **Automated Onboarding:** New providers select a preferred monthly due date during registration. On their first login, they are met with a mandatory Terms of Service screen. Upon acceptance, the system automatically generates a 12-month payment plan.
+- **Promotional Installments:** The automated plan includes 3 initial installments at a promotional rate (R9.90) and 9 subsequent installments at the full rate (R99.90). Due dates falling on weekends are automatically postponed to the following Monday.
+- **Automatic Blocking:** A system that blocks a provider's access to most features (except their financial page) if a payment is overdue by 3 days.
+- **Complete Registration Form:** The provider registration form has been expanded to collect all data required by the Efi Bank production API, including Responsible Person's CPF, and separate fields for street, number, city, state, and CEP.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-Stack Frameworks:** React (Frontend), FastAPI (Backend).
+- **Full-Stack Application:** React frontend and FastAPI (Python) backend.
 - **Database:** MongoDB.
-- **Deployment & Ops:** Supervisor for process management, Emergent platform for hosting.
-- **Third-Party Integrations:**
-  - Mercado Pago (now disabled).
-  - Efi Bank (Gerencianet) for PIX and boleto generation.
-- **Authentication:** JWT-based token authentication for providers and admins.
-- **Frontend Styling:** Tailwind CSS and Shadcn UI components.
+- **Payment Gateway:** Efi Bank API for charge generation.
+- **File Storage:** Cloudflare R2 for user-uploaded images (e.g., logos).
+- **Authentication:** JWT (JSON Web Tokens) for both admin and provider sessions.
+- **Asynchronous Tasks:** Backend scheduler used for tasks like checking for overdue payments.
+- **UI/UX:** Styling with Tailwind CSS and components from Shadcn/UI. The frontend is a large Single Page Application within .
 </key_technical_concepts>
 
 <code_architecture>
-The application is a standard monorepo with a  and  directory.
+The application is a monorepo with  and  directories.
 
 
 
--   **backend/server.py**
-    -   **Importance:** This is the core FastAPI application. It defines all API routes, database models (Pydantic), and business logic.
-    -   **Changes:** Heavily modified to:
-        -   Comment out and disable all Mercado Pago related routes and functions.
-        -   Add new API endpoints for Efi Bank integration (, ).
-        -   Implement full CRUD API endpoints for provider management by admins ().
-        -   Add a  flag to the  model and logic to restrict access for pending providers.
-        -   Add an endpoint to trigger the financial generation for a provider.
+- ****
+    - **Importance:** This is the core of the entire application. It's a massive FastAPI file containing all API endpoints, Pydantic models, business logic for providers, clients, admins, authentication, and the functions for automatic installment generation, user blocking, and data validation.
+    - **Summary of Changes:** This file has been extensively modified to:
+        - Implement the entire automatic onboarding flow, including  function with promotional pricing and weekend adjustments.
+        - Add a  dependency to protect endpoints.
+        - Fix a critical bug in the provider  endpoint to prevent data corruption by only updating fields present in the request.
+        - Add a  endpoint to trigger financial generation.
+        - Correct a silent failure bug where financials were marked as generated even if all Efi API calls failed.
+        - Expand the  and  Pydantic models to include all fields required for Efi's production environment (CPF, address components, etc.).
+        - Expand the  response model to include , , , and  flags to enable the frontend onboarding flow.
 
--   **backend/efi_service.py**
-    -   **Importance:** This new file encapsulates all communication with the Efi Bank API. It handles authentication, charge creation (boleto/PIX), and webhook validation.
-    -   **Changes:** Created from scratch to abstract the Efi Bank integration. It was modified to use lazy initialization () to resolve an issue with environment variables not loading on startup. It currently fails with a  error.
+- ****
+    - **Importance:** This file isolates all communication with the Efi Bank API.
+    - **Summary of Changes:** The file was confirmed to correctly switch between Sandbox and Production URLs based on the  environment variable. Production credentials were added to the  file. A bug where a  response for a PDF link could crash the service was fixed with .
 
--   **frontend/src/App.js**
-    -   **Importance:** The main React entry point, containing routing and most of the application's components defined within the same file.
-    -   **Changes:**
-        -   A hardcoded redirect to  was found and removed.
-        -   A new redirect from the  subdomain to the root domain was added.
-        -   Logic was added to conditionally render the new  component.
-        -   Mobile responsiveness for dashboard buttons was improved using Tailwind CSS classes.
+- ****
+    - **Importance:** This file contains nearly the entire frontend application, including routing, state management, and components for login, registration, admin dashboard, and provider dashboard.
+    - **Summary of Changes:**
+        - The provider registration form was significantly updated to include fields for CPF do Responsável, separate Endereço and Número, and a Confirmar Senha field.
+        - Logic was implemented to show a full-screen, non-closable overlay for new providers () to force acceptance of terms.
+        - The provider login function was fixed to save  and  flags to , ensuring the overlay appears correctly on first login.
+        - The UI was updated to show a large alert and disable key functions when a provider is blocked.
+        - All logos and icons were updated to new versions provided by the user.
 
--   **frontend/src/components/AdminProviderDashboardSimple.jsx**
-    -   **Importance:** A newly created component that serves as the admin dashboard for managing providers, inspired by IXC. It's the focus of current development and debugging.
-    -   **Changes:**
-        -   Built to display a list of providers with status highlights.
-        -   Includes a form for creating/editing providers.
-        -   Features a Gerar Financeiro button to activate new providers.
-        -   Contains a Financeiro tab to view payment history.
-        -   This component is the source of a recurring  DOM error.
-
--   **frontend/public/index.html**
-    -   **Importance:** The main HTML file for the React app.
-    -   **Changes:** The Made with Emergent branding and associated scripts were removed from this file.
+- ****
+    - **Importance:** The main HTML entry point for the React app.
+    - **Summary of Changes:** Updated to include new  and other icon sizes for the new branding. A  link was also added.
 </code_architecture>
 
 <pending_tasks>
-- **Fix Efi Bank Authentication:** The integration is failing with a  error. This requires obtaining and configuring valid sandbox  and  for Efi Bank.
-- **End-to-End Payment Test:** Once the credentials are fixed, the entire payment flow (generation, webhook notification, and status update) needs to be tested.
+- Investigate and resolve the  error that occurs in the production environment.
+- The user's request to add a confirm password field was implemented, but the subsequent error report preempted any testing of that feature. The functionality of the password confirmation needs to be implicitly verified while resolving the primary  error.
 </pending_tasks>
 
 <current_work>
-The AI engineer was actively debugging a critical runtime error in the frontend.
+The AI engineer was finalizing the new provider registration and onboarding flow. The last set of changes involved enhancing the registration form to collect all data required by the Efi Bank production API, including the responsible person's CPF and a separated address number. Additionally, a confirm password field was added to the registration form as requested by the user.
 
-**Problem:** A  error occurs when the admin attempts to open the provider management dashboard. This error indicates a problem with how React is manipulating the DOM, likely due to rendering a complex component () into an invalid part of the component tree.
+Immediately after these changes, the user reported a new error: . This error indicates that even after accepting the terms, the automatic installment generation is failing with a  from the Efi Bank API, likely due to data validation issues in the production environment.
 
-**Previous Attempts to Fix:**
-1.  **Conditional Rendering:** Initially, the dashboard was rendered conditionally within the main admin view. This caused the error.
-2.  **Component Simplification:** The AI created a  version, which seemed to work temporarily but the error returned.
+The last action taken by the previous engineer was to acknowledge this error and prepare to investigate the backend logs to diagnose the cause of the  error.
 
-**Last Action Taken:** The AI's most recent attempt to solve this was to change the rendering mechanism again. Instead of rendering the component directly, it implemented a Gestão de Provedores button that, when clicked, sets a state variable () to . This state is intended to trigger a modal that will contain the  component. The hypothesis is that rendering the component within a properly structured modal (which typically appends to the  or a dedicated portal ) would prevent the DOM hierarchy conflict that causes the  error. The code for this modal approach was just implemented and the frontend service was restarted. The next step is to verify if this fix was successful.
+**Files Edited Just Before Summary:**
+- : Added Confirmar Senha field.
+- : No changes in the last message, but previous messages heavily modified it.
 </current_work>
 
 <optional_next_step>
-Verify if wrapping the  component in a modal has resolved the  runtime error. I will test by navigating to the admin dashboard and clicking the Gestão de Provedores button.
+Investigate the  error by examining the latest backend logs to see the detailed error response from the Efi Bank production API.
 </optional_next_step>
