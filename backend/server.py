@@ -3691,7 +3691,14 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
     provider_data.cpf = re.sub(r'\D', '', provider_data.cpf) if provider_data.cpf else ""
     provider_data.cep = re.sub(r'\D', '', provider_data.cep) if provider_data.cep else ""
     provider_data.cnpj = re.sub(r'\D', '', provider_data.cnpj) if provider_data.cnpj else ""
-    provider_data.phone = re.sub(r'\D', '', provider_data.phone) if provider_data.phone else ""
+    
+    # Limpar telefone e pegar apenas os primeiros 11 dígitos (DDD + 9 dígitos)
+    phone_cleaned = re.sub(r'\D', '', provider_data.phone) if provider_data.phone else ""
+    # Se tem mais de 11 dígitos, pegar apenas os primeiros 11
+    if len(phone_cleaned) > 11:
+        print(f"[REGISTER] ⚠️ Telefone muito longo ({len(phone_cleaned)} dígitos), truncando para 11: {phone_cleaned[:11]}")
+        phone_cleaned = phone_cleaned[:11]
+    provider_data.phone = phone_cleaned
     
     print(f"[REGISTER] Dados recebidos (LIMPOS):")
     print(f"  - CPF: {provider_data.cpf}")
