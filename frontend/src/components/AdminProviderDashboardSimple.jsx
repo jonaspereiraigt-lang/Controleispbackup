@@ -20,6 +20,14 @@ const AdminProviderDashboardSimple = () => {
   const [paymentFilter, setPaymentFilter] = useState('todos');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  
+  // System Configuration States
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [systemConfig, setSystemConfig] = useState({
+    backend_url: '',
+    webhook_url: ''
+  });
+  const [loadingConfig, setLoadingConfig] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '', email: '', cnpj: '', cpf: '', phone: '', address: '',
