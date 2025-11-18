@@ -97,10 +97,11 @@ class EfiPaymentService:
                 }
             
             # Step 2: Add payment method (boleto)
-            # Extract and validate provider data
-            cpf = provider_data.get("cpf", "").replace(".", "").replace("-", "")
-            phone = provider_data.get("phone", "").replace("(", "").replace(")", "").replace("-", "").replace(" ", "")
-            cep = provider_data.get("cep", "").replace("-", "")
+            # Extract and validate provider data - remove ALL non-numeric characters
+            import re
+            cpf = re.sub(r'\D', '', provider_data.get("cpf", ""))
+            phone = re.sub(r'\D', '', provider_data.get("phone", ""))
+            cep = re.sub(r'\D', '', provider_data.get("cep", ""))
             
             # Validate required fields
             if not cpf or len(cpf) != 11:
