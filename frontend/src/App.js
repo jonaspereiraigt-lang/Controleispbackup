@@ -4472,7 +4472,7 @@ const ProviderDashboard = ({ onLogout }) => {
       }
       
       loadMyPayments();
-      loadNotifications(); // Recarregar notificações após sync
+      loadProviderNotifications(); // Recarregar notificações após sync
     } catch (error) {
       toast.error("Erro ao sincronizar: " + (error.response?.data?.detail || "Erro desconhecido"));
     } finally {
