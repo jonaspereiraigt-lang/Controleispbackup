@@ -2245,6 +2245,90 @@ async def delete_provider_admin(provider_id: str, current_user=Depends(get_curre
     return {"message": "Provedor excluído com sucesso", "provider_id": provider_id}
 
 
+@api_router.put("/admin/providers/{provider_id}")
+async def update_provider(
+    provider_id: str, 
+    provider_update: dict,
+    current_user=Depends(get_current_admin)
+):
+    """Update provider information (admin only)"""
+    try:
+        # Check if provider exists
+        existing_provider = await db.providers.find_one({"id": provider_id, "is_active": True})
+        if not existing_provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        # Remove empty fields and prepare update data
+        update_data = {}
+        allowed_fields = [
+            'name', 'email', 'cnpj', 'cpf', 'phone', 'address', 
+            'number', 'complement', 'neighborhood', 'city', 'state', 'cep',
+            'username', 'contract_number', 'contract_date', 
+            'plan_type', 'plan_value', 'payment_method'
+        ]
+        
+        for field in allowed_fields:
+            if field in provider_update and provider_update[field] is not None:
+                if field == 'email':
+                    # Check if email is already used by another provider
+                    email_check = await db.providers.find_one({
+                        "email": provider_update[field].lower(),
+                        "id": {"$ne": provider_id},
+                        "is_active": True
+                    })
+                    if email_check:
+                        raise HTTPException(status_code=400, detail="Email já está sendo usado por outro provedor")
+                    update_data[field] = provider_update[field].lower()
+                elif field == 'cnpj':
+                    # Check if CNPJ is already used by another provider
+                    cnpj_check = await db.providers.find_one({
+                        "cnpj": provider_update[field],
+                        "id": {"$ne": provider_id},
+                        "is_active": True
+                    })
+                    if cnpj_check:
+                        raise HTTPException(status_code=400, detail="CNPJ já está sendo usado por outro provedor")
+                    update_data[field] = provider_update[field]
+                elif field == 'plan_value':
+                    update_data[field] = float(provider_update[field])
+                else:
+                    update_data[field] = provider_update[field]
+        
+        # Handle password update separately if provided
+        if 'password' in provider_update and provider_update['password']:
+            hashed_password = pwd_context.hash(provider_update['password'])
+            update_data['password'] = hashed_password
+        
+        # Add updated timestamp
+        update_data['updated_at'] = datetime.now(timezone.utc)
+        
+        # Update provider in database
+        result = await db.providers.update_one(
+            {"id": provider_id},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=400, detail="Nenhuma alteração foi feita")
+        
+        # Return updated provider
+        updated_provider = await db.providers.find_one({"id": provider_id})
+        if updated_provider:
+            updated_provider.pop('password', None)  # Remove password from response
+            updated_provider['_id'] = str(updated_provider['_id'])
+        
+        return {
+            "message": "Provedor atualizado com sucesso",
+            "provider": updated_provider
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating provider: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro interno do servidor: {str(e)}")
+
+
 @api_router.get("/admin/providers/{provider_id}/payments")
 async def get_provider_payments(provider_id: str, current_user=Depends(get_current_admin)):
     """Get all payments for a specific provider (admin only)"""
