@@ -656,22 +656,32 @@ const AdminProviderDashboardSimple = () => {
                         <div className="space-y-3">
                           {getFilteredPayments().map((payment) => {
                             const overdue = isOverdue(payment);
+                            const isPaid = payment.status === 'paid';
+                            const isCanceled = payment.status === 'canceled' || payment.status === 'cancelled';
+                            const isPending = payment.status === 'pending';
+                            
                             return (
                             <div key={payment.id} className={`bg-white border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                              overdue ? 'border-l-4 border-l-red-500 bg-red-50' : ''
+                              isPaid ? 'border-l-4 border-l-green-500 bg-green-50' :
+                              isCanceled ? 'border-l-4 border-l-gray-400 bg-gray-50' :
+                              overdue ? 'border-l-4 border-l-red-500 bg-red-50' :
+                              isPending ? 'border-l-4 border-l-yellow-500 bg-yellow-50' :
+                              'border-l-4 border-l-blue-500 bg-blue-50'
                             }`}>
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                   <div className={`w-3 h-3 rounded-full ${
-                                    payment.status === 'paid' ? 'bg-green-500' :
+                                    isPaid ? 'bg-green-500' :
+                                    isCanceled ? 'bg-gray-400' :
                                     overdue ? 'bg-red-500' :
-                                    payment.status === 'pending' ? 'bg-yellow-500' :
-                                    payment.status === 'waiting' ? 'bg-blue-500' :
-                                    'bg-gray-500'
+                                    isPending ? 'bg-yellow-500' :
+                                    'bg-blue-500'
                                   }`} />
                                   <div>
                                     <h4 className="font-semibold text-gray-900">
                                       {payment.payment_method === 'boleto' ? '📄 Boleto Bancário' : '💳 PIX'}
+                                      {isPaid && <span className="ml-2 text-xs text-green-600 font-bold">✅ RECEBIDO</span>}
+                                      {isCanceled && <span className="ml-2 text-xs text-gray-600 font-bold">❌ CANCELADO</span>}
                                       {overdue && <span className="ml-2 text-xs text-red-600 font-bold">⚠️ ATRASADO</span>}
                                     </h4>
                                     <p className="text-sm text-gray-500">ID: {payment.payment_id || payment.id}</p>
@@ -681,18 +691,18 @@ const AdminProviderDashboardSimple = () => {
                                   <p className="text-lg font-bold text-gray-900">
                                     R$ {payment.amount ? payment.amount.toFixed(2) : '0.00'}
                                   </p>
-                                  <span className={`text-xs px-2 py-1 rounded-full ${
-                                    payment.status === 'paid' ? 'bg-green-100 text-green-800' :
+                                  <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                                    isPaid ? 'bg-green-100 text-green-800' :
+                                    isCanceled ? 'bg-gray-100 text-gray-700' :
                                     overdue ? 'bg-red-100 text-red-800' :
-                                    payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                    payment.status === 'waiting' ? 'bg-blue-100 text-blue-800' :
-                                    'bg-gray-100 text-gray-800'
+                                    isPending ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-blue-100 text-blue-800'
                                   }`}>
-                                    {payment.status === 'paid' ? 'Pago' :
+                                    {isPaid ? 'Recebido' :
+                                     isCanceled ? 'Cancelado' :
                                      overdue ? 'Atrasado' :
-                                     payment.status === 'pending' ? 'Em Aberto' :
-                                     payment.status === 'waiting' ? 'Aguardando' :
-                                     'Cancelado'}
+                                     isPending ? 'Em Aberto' :
+                                     'Aguardando'}
                                   </span>
                                 </div>
                               </div>
