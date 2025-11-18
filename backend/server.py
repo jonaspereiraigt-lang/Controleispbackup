@@ -705,6 +705,7 @@ class ProviderCreate(BaseModel):
     id_front_photo: str  # Obrigatório
     id_back_photo: str   # Obrigatório
     holding_id_photo: str  # Obrigatório
+    logo_photo: Optional[str] = None  # Logo do provedor (opcional)
     contract_accepted: bool
     due_day: int  # Dia de vencimento (5, 10, 15, 20, 25)
 
