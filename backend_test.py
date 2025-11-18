@@ -34,6 +34,7 @@ class BackendTester:
         self.mongo_client = None
         self.db = None
         self.generated_payments = []  # Store all generated payments
+        self.new_provider_data = None  # Store new provider data for onboarding test
         
     def log_result(self, test_name, success, message, details=None):
         """Log test result"""
