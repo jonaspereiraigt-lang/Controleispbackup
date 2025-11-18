@@ -4206,12 +4206,6 @@ const ProviderDashboard = ({ onLogout }) => {
   // Estados de logo removidos - gerenciado no cadastro
   const [downloadingContract, setDownloadingContract] = useState(false);
 
-  // Notification states
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [loadingNotifications, setLoadingNotifications] = useState(false);
-
   // Estados para pesquisa de meus clientes
   const [showMyClientsSearch, setShowMyClientsSearch] = useState(false);
   const [myClientsSearchName, setMyClientsSearchName] = useState("");
