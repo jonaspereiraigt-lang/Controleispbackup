@@ -465,14 +465,23 @@ class EfiPaymentService:
                     
                     logger.info(f"Notification details: {charge_data}")
                     
+                    # Extract charge_id from identifiers
+                    identifiers = charge_data.get("identifiers", {})
+                    charge_id = identifiers.get("charge_id", "")
+                    
+                    # Extract status
+                    status_obj = charge_data.get("status", {})
+                    current_status = status_obj.get("current", "")
+                    
                     return {
                         "notification_type": "charge",
                         "data": {
-                            "charge_id": charge_data.get("charge_id", ""),
-                            "status": charge_data.get("status", {}).get("current", ""),
-                            "value": charge_data.get("value", 0) / 100,  # Convert from cents
+                            "charge_id": str(charge_id),
+                            "status": current_status,
+                            "value": charge_data.get("value", 0) / 100 if charge_data.get("value") else 0,
                             "paid_at": charge_data.get("paid_at", ""),
-                            "payment_method": charge_data.get("payment", "")
+                            "payment_method": charge_data.get("payment", ""),
+                            "custom_id": charge_data.get("custom_id", "")
                         }
                     }
                 else:
