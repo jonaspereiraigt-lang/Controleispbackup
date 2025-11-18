@@ -9168,7 +9168,6 @@ const ProviderDashboard = ({ onLogout }) => {
                     key={payment.id} 
                     className={`border rounded-lg p-4 ${
                       isPaid ? 'border-l-4 border-l-green-500 bg-green-50' :
-                      isCanceled ? 'border-l-4 border-l-gray-400 bg-gray-50' :
                       isOverdue ? 'border-l-4 border-l-red-500 bg-red-50' :
                       isPending ? 'border-l-4 border-l-yellow-500 bg-yellow-50' :
                       'bg-white'
@@ -9178,7 +9177,6 @@ const ProviderDashboard = ({ onLogout }) => {
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full ${
                           isPaid ? 'bg-green-500' :
-                          isCanceled ? 'bg-gray-400' :
                           isOverdue ? 'bg-red-500' :
                           'bg-yellow-500'
                         }`} />
@@ -9186,7 +9184,6 @@ const ProviderDashboard = ({ onLogout }) => {
                           <h4 className="font-semibold text-gray-900">
                             {payment.payment_method === 'boleto' ? '📄 Boleto Bancário' : '💳 PIX'}
                             {isOverdue && <span className="ml-2 text-xs text-red-600 font-bold">⚠️ ATRASADO</span>}
-                            {isCanceled && <span className="ml-2 text-xs text-gray-600 font-bold">❌ CANCELADO</span>}
                             {isPaid && <span className="ml-2 text-xs text-green-600 font-bold">✅ RECEBIDO</span>}
                           </h4>
                           <p className="text-sm text-gray-500">ID: {payment.payment_id || payment.id}</p>
@@ -9198,11 +9195,10 @@ const ProviderDashboard = ({ onLogout }) => {
                         </p>
                         <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
                           isPaid ? 'bg-green-100 text-green-800' :
-                          isCanceled ? 'bg-gray-100 text-gray-700' :
                           isOverdue ? 'bg-red-100 text-red-800' :
                           'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {isPaid ? 'Recebido' : isCanceled ? 'Cancelado' : isOverdue ? 'Atrasado' : 'Em Aberto'}
+                          {isPaid ? 'Recebido' : isOverdue ? 'Atrasado' : 'Em Aberto'}
                         </span>
                       </div>
                     </div>
