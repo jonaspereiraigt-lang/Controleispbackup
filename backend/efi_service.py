@@ -34,6 +34,15 @@ class EfiPaymentService:
             'sandbox': self.sandbox
         }
         
+        # Add certificate for production mode
+        if not self.sandbox:
+            certificate_path = os.path.join(os.path.dirname(__file__), 'producao-controle-isp.p12')
+            if os.path.exists(certificate_path):
+                self.credentials['certificate'] = certificate_path
+                logger.info("Production certificate loaded for Efi Bank")
+            else:
+                logger.warning(f"Production certificate not found at: {certificate_path}")
+        
         try:
             self.gn = Gerencianet(self.credentials)
             logger.info(f"Efi Bank client initialized - Sandbox: {self.sandbox}")
