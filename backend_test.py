@@ -1089,47 +1089,57 @@ class BackendTester:
         
         # Summary
         print("=" * 80)
-        print("📊 BOLETO GENERATION AND LINK/PDF VERIFICATION SUMMARY")
+        print("📊 ONBOARDING FLOW WITH AUTOMATIC INSTALLMENTS SUMMARY")
         print("=" * 80)
         print(f"✅ Passed: {passed}")
         print(f"❌ Failed: {failed}")
         print(f"📈 Success Rate: {(passed/(passed+failed)*100):.1f}%")
         
         # Analyze the specific issue
-        print("\n🔍 BOLETO FUNCTIONALITY ANALYSIS:")
+        print("\n🔍 ONBOARDING FLOW ANALYSIS:")
         
-        # Check if the main endpoints are working
-        generate_working = any(r["success"] and "generate boleto" in r["test"].lower() for r in self.results)
-        provider_payments_working = any(r["success"] and "provider my payments" in r["test"].lower() for r in self.results)
-        admin_payments_working = any(r["success"] and "admin provider payments" in r["test"].lower() for r in self.results)
+        # Check if the main steps are working
+        provider_created = any(r["success"] and "create new provider" in r["test"].lower() for r in self.results)
+        login_working = any(r["success"] and "provider first login" in r["test"].lower() for r in self.results)
+        terms_accepted = any(r["success"] and "accept terms" in r["test"].lower() for r in self.results)
+        installments_verified = any(r["success"] and "verify installments" in r["test"].lower() for r in self.results)
         
-        if generate_working:
-            print("   ✅ Admin can generate boleto installments")
+        if provider_created:
+            print("   ✅ Provider registration with complete data working")
         else:
-            print("   ❌ Admin CANNOT generate boleto installments - CRITICAL ISSUE")
+            print("   ❌ Provider registration FAILED - Check required fields")
         
-        if provider_payments_working:
-            print("   ✅ Provider can access payments with link/pdf fields")
+        if login_working:
+            print("   ✅ Provider first login working correctly")
         else:
-            print("   ❌ Provider payments missing link/pdf fields - CRITICAL ISSUE")
+            print("   ❌ Provider login FAILED - Check authentication")
         
-        if admin_payments_working:
-            print("   ✅ Admin can access payments with link/pdf fields")
+        if terms_accepted:
+            print("   ✅ Terms acceptance and automatic installment generation working")
         else:
-            print("   ❌ Admin payments missing link/pdf fields - CRITICAL ISSUE")
+            print("   ❌ Terms acceptance FAILED - CRITICAL: Error 400 may still exist")
+        
+        if installments_verified:
+            print("   ✅ 12 installments generated with correct amounts and Efi Bank data")
+        else:
+            print("   ❌ Installment verification FAILED - Check payment generation")
         
         # Final verdict
-        if generate_working and provider_payments_working and admin_payments_working:
-            print("\n🎉 BOLETO FUNCTIONALITY: FULLY WORKING")
-            print("   Providers can click and print boletos from 'Meu Financeiro'")
+        if provider_created and login_working and terms_accepted and installments_verified:
+            print("\n🎉 ONBOARDING FLOW: FULLY WORKING")
+            print("   ✅ Error 400 in production environment has been FIXED")
+            print("   ✅ Provider data (CPF, address) is being saved and used correctly")
+            print("   ✅ Automatic 12-installment generation is working")
         else:
-            print("\n❌ BOLETO FUNCTIONALITY: ISSUES FOUND")
-            if not generate_working:
-                print("   - Fix boleto generation endpoint")
-            if not provider_payments_working:
-                print("   - Fix provider payments endpoint (missing link/pdf)")
-            if not admin_payments_working:
-                print("   - Fix admin payments endpoint (missing link/pdf)")
+            print("\n❌ ONBOARDING FLOW: ISSUES FOUND")
+            if not provider_created:
+                print("   - Fix provider registration endpoint")
+            if not login_working:
+                print("   - Fix provider authentication")
+            if not terms_accepted:
+                print("   - CRITICAL: Fix Error 400 in terms acceptance/installment generation")
+            if not installments_verified:
+                print("   - Fix installment generation or payment retrieval")
         
         return passed, failed
 
