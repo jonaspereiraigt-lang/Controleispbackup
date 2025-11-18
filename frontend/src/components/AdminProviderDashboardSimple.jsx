@@ -1070,6 +1070,45 @@ const AdminProviderDashboardSimple = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de Reprovação */}
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              Reprovar Documentos
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Informe o motivo da reprovação dos documentos deste provedor:
+            </p>
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg mb-4 min-h-[100px]"
+              placeholder="Ex: Foto do documento está desfocada, CPF não corresponde ao documento, etc."
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={confirmRejectDocuments}
+                disabled={loading || !rejectionReason.trim()}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Confirmar Reprovação
+              </button>
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectionReason('');
+                }}
+                disabled={loading}
+                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
