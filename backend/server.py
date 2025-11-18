@@ -5514,6 +5514,88 @@ async def delete_payment(
         raise HTTPException(status_code=500, detail="Erro ao cancelar pagamento")
 
 
+@api_router.get("/provider/notifications")
+async def get_provider_notifications(current_user=Depends(get_current_provider)):
+    """Get provider notifications"""
+    provider_id = current_user["user_id"]
+    
+    try:
+        # Get all notifications for this provider, sorted by most recent
+        notifications = await db.notifications.find({
+            "provider_id": provider_id
+        }).sort("created_at", -1).limit(50).to_list(50)
+        
+        # Count unread notifications
+        unread_count = await db.notifications.count_documents({
+            "provider_id": provider_id,
+            "is_read": False
+        })
+        
+        return {
+            "success": True,
+            "notifications": notifications,
+            "unread_count": unread_count
+        }
+        
+    except Exception as e:
+        print(f"Error getting notifications: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao buscar notificações")
+
+
+@api_router.put("/provider/notifications/{notification_id}/read")
+async def mark_notification_as_read(
+    notification_id: str,
+    current_user=Depends(get_current_provider)
+):
+    """Mark notification as read"""
+    provider_id = current_user["user_id"]
+    
+    try:
+        # Verify notification belongs to this provider
+        notification = await db.notifications.find_one({
+            "id": notification_id,
+            "provider_id": provider_id
+        })
+        
+        if not notification:
+            raise HTTPException(status_code=404, detail="Notificação não encontrada")
+        
+        # Mark as read
+        await db.notifications.update_one(
+            {"id": notification_id},
+            {"$set": {"is_read": True}}
+        )
+        
+        return {"success": True, "message": "Notificação marcada como lida"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error marking notification as read: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao marcar notificação")
+
+
+@api_router.put("/provider/notifications/mark-all-read")
+async def mark_all_notifications_read(current_user=Depends(get_current_provider)):
+    """Mark all notifications as read"""
+    provider_id = current_user["user_id"]
+    
+    try:
+        result = await db.notifications.update_many(
+            {"provider_id": provider_id, "is_read": False},
+            {"$set": {"is_read": True}}
+        )
+        
+        return {
+            "success": True,
+            "message": f"{result.modified_count} notificação(ões) marcada(s) como lida(s)"
+        }
+        
+    except Exception as e:
+        print(f"Error marking all notifications as read: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao marcar notificações")
+
+
 @api_router.post("/provider/sync-payments")
 async def sync_payments_with_efi(current_user=Depends(get_current_provider)):
     """Manually sync payment statuses with Efi Bank"""
