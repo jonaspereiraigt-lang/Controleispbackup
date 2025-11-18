@@ -38,7 +38,41 @@ const AdminProviderDashboardSimple = () => {
 
   useEffect(() => {
     loadProviders();
+    loadSystemConfig();
   }, []);
+
+  // System Configuration Functions
+  const loadSystemConfig = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/admin/system-config`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSystemConfig({
+        backend_url: response.data.backend_url || '',
+        webhook_url: response.data.webhook_url || ''
+      });
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    try {
+      setLoadingConfig(true);
+      const token = localStorage.getItem('token');
+      await axios.put(`${API}/admin/system-config`, systemConfig, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Configurações salvas com sucesso!');
+      setShowConfigModal(false);
+    } catch (error) {
+      console.error('Erro ao salvar configurações:', error);
+      alert('Erro ao salvar configurações');
+    } finally {
+      setLoadingConfig(false);
+    }
+  };
 
   const loadProviders = async () => {
     try {
