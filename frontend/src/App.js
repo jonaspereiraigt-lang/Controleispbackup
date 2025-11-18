@@ -6388,6 +6388,70 @@ const ProviderDashboard = ({ onLogout }) => {
         </div>
       </header>
 
+      {/* Painel de Notificações */}
+      {showNotifications && (
+        <div className="bg-white border-b border-gray-200 shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Notificações
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {unreadCount} nova(s)
+                  </span>
+                )}
+              </h3>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllNotificationsRead}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Marcar todas como lidas
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                  <p>Nenhuma notificação</p>
+                </div>
+              ) : (
+                notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className={`p-4 rounded-lg border ${
+                      notif.is_read
+                        ? 'bg-gray-50 border-gray-200'
+                        : 'bg-blue-50 border-blue-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900">{notif.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(notif.created_at).toLocaleString('pt-BR')}
+                        </p>
+                      </div>
+                      {!notif.is_read && (
+                        <button
+                          onClick={() => markNotificationAsRead(notif.id)}
+                          className="ml-4 text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Marcar como lida
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Seção de Informações do Provedor */}
       <div className="bg-blue-50 border-b border-blue-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
