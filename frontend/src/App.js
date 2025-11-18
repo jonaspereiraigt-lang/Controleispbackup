@@ -1713,31 +1713,44 @@ const Login = ({ onLogin }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="register-address">Endereço *</Label>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2">
+                  <Label htmlFor="register-address">Endereço (Rua/Avenida) *</Label>
                   <Input
                     id="register-address"
                     name="address"
                     value={registerData.address}
                     onChange={handleRegisterInputChange}
-                    placeholder="Rua/Avenida, número (ex: Rua das Flores, 123)"
+                    placeholder="Rua das Flores"
                     required
                     data-testid="register-address-input"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="register-bairro">Bairro *</Label>
+                  <Label htmlFor="register-number">Número *</Label>
                   <Input
-                    id="register-bairro"
-                    name="bairro"
-                    value={registerData.bairro}
+                    id="register-number"
+                    name="number"
+                    value={registerData.number}
                     onChange={handleRegisterInputChange}
-                    placeholder="Nome do bairro"
+                    placeholder="123"
                     required
-                    data-testid="register-bairro-input"
+                    data-testid="register-number-input"
                   />
                 </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="register-bairro">Bairro *</Label>
+                <Input
+                  id="register-bairro"
+                  name="bairro"
+                  value={registerData.bairro}
+                  onChange={handleRegisterInputChange}
+                  placeholder="Nome do bairro"
+                  required
+                  data-testid="register-bairro-input"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
