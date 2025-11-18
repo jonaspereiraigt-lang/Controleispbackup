@@ -9203,11 +9203,15 @@ const ProviderDashboard = ({ onLogout }) => {
               {myPayments.map((payment) => {
                 const isOverdue = payment.status === 'pending' && new Date(payment.expires_at) < new Date();
                 const isPending = payment.status === 'pending' && new Date(payment.expires_at) >= new Date();
+                const isPaid = payment.status === 'paid';
+                const isCanceled = payment.status === 'canceled' || payment.status === 'cancelled';
                 
                 return (
                   <div 
                     key={payment.id} 
                     className={`border rounded-lg p-4 ${
+                      isPaid ? 'border-l-4 border-l-green-500 bg-green-50' :
+                      isCanceled ? 'border-l-4 border-l-gray-400 bg-gray-50' :
                       isOverdue ? 'border-l-4 border-l-red-500 bg-red-50' :
                       isPending ? 'border-l-4 border-l-yellow-500 bg-yellow-50' :
                       'bg-white'
