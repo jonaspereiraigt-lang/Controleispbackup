@@ -157,7 +157,7 @@ frontend:
     implemented: true
     working: true
     file: "/app/frontend/src/App.js, /app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
@@ -167,6 +167,12 @@ frontend:
       - working: true
         agent: "main"
         comment: "ERRO DE COMPILAÇÃO CORRIGIDO COM SUCESSO. PROBLEMA: Múltiplas declarações duplicadas de variáveis e funções relacionadas ao sistema de notificações. CORREÇÕES: 1) Removida declaração duplicada de notifications (havia 3 declarações no total), 2) Removida função duplicada markNotificationAsRead (linha 5321), 3) Consolidadas funções de carregamento - mantida apenas loadProviderNotifications para o provider, 4) Atualizadas todas as 5 referências de loadNotifications() para loadProviderNotifications() no contexto do provider. Frontend compilando sem erros. Sistema de notificações backend implementado: webhook Efi Bank cria notificações na collection, endpoints GET /provider/notifications e POST /provider/notifications/{id}/read prontos. UI do sino com badge e painel de notificações implementado. Necessita teste completo do fluxo: webhook → notificação → exibição no UI."
+      - working: false
+        agent: "user"
+        comment: "Erro ao entrar na conta do provedor: ReferenceError: setLoadingNotifications não está definido em loadProviderNotifications. Erro ocorre no useEffect que carrega as notificações do provider."
+      - working: true
+        agent: "main"
+        comment: "ERRO CORRIGIDO: Ao remover as declarações duplicadas anteriormente, também foi removida acidentalmente a declaração de const [loadingNotifications, setLoadingNotifications]. CORREÇÃO: Adicionada de volta a declaração na linha 4149, após showNotifications e antes de isBlocked. Frontend compilando sem erros novamente. Provider agora pode fazer login e carregar notificações sem problemas."
 
   - task: "Correção erro React DOM insertBefore e removeChild"
     implemented: true
