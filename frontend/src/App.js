@@ -9088,10 +9088,17 @@ const ProviderDashboard = ({ onLogout }) => {
                       isOverdue ? 'border-l-4 border-l-red-500 bg-red-50' :
                       isPending ? 'border-l-4 border-l-yellow-500 bg-yellow-50' :
                       'bg-white'
-                    }`}
+                    } ${selectedPayments.includes(payment.id) ? 'ring-2 ring-blue-500' : ''}`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
+                        {/* Checkbox para seleção */}
+                        <input
+                          type="checkbox"
+                          checked={selectedPayments.includes(payment.id)}
+                          onChange={() => handleSelectPayment(payment.id)}
+                          className="w-4 h-4 text-blue-600 rounded"
+                        />
                         <div className={`w-3 h-3 rounded-full ${
                           payment.status === 'paid' ? 'bg-green-500' :
                           isOverdue ? 'bg-red-500' :
