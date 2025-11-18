@@ -694,9 +694,14 @@ class ProviderCreate(BaseModel):
     email: EmailStr
     password: str
     cnpj: str
+    cpf: str  # CPF do responsável
     phone: str
-    address: str  # Endereço sem bairro
-    bairro: str  # Bairro separado
+    cep: str  # CEP
+    address: str  # Rua/Avenida
+    number: str  # Número do endereço
+    bairro: str  # Bairro
+    city: str  # Cidade
+    state: str  # Estado (UF)
     id_front_photo: str  # Obrigatório
     id_back_photo: str   # Obrigatório
     holding_id_photo: str  # Obrigatório
