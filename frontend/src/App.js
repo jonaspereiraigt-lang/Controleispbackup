@@ -1288,12 +1288,24 @@ const Login = ({ onLogin }) => {
         const response = await axios.post(`${API}/validate/cnpj`, { cnpj });
         if (response.data.success) {
           const data = response.data;
+          
+          // Limpar e validar telefone - pegar apenas números e limitar a 11 dígitos
+          let cleanPhone = prev.phone;
+          if (data.telefone) {
+            cleanPhone = data.telefone.replace(/\D/g, ''); // Remove tudo que não é número
+            // Se tem mais de 11 dígitos, pegar apenas os primeiros 11
+            if (cleanPhone.length > 11) {
+              console.log(`Telefone da API muito longo (${cleanPhone.length} dígitos), usando apenas os primeiros 11`);
+              cleanPhone = cleanPhone.substring(0, 11);
+            }
+          }
+          
           setRegisterData(prev => ({
             ...prev,
             name: data.nome || prev.name, // Razão Social
             nome_fantasia: data.fantasia || prev.nome_fantasia, // Nome Fantasia
             email: data.email || prev.email,
-            phone: data.telefone || prev.phone,
+            phone: cleanPhone,
             address: data.endereco.logradouro || prev.address,
             bairro: data.endereco.bairro || prev.bairro,
             cep: data.endereco.cep || prev.cep,
