@@ -2104,6 +2104,60 @@ async def unblock_provider(provider_id: str, current_user=Depends(get_current_us
         raise HTTPException(status_code=500, detail="Erro ao desbloquear provedor")
 
 
+@api_router.put("/admin/providers/{provider_id}/verify-documents")
+async def verify_provider_documents(
+    provider_id: str, 
+    verification_data: dict,
+    current_user=Depends(get_current_admin)
+):
+    """Approve or reject provider's identity documents"""
+    try:
+        provider = await db.providers.find_one({"id": provider_id})
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provedor não encontrado")
+        
+        status = verification_data.get("status")  # "approved" ou "rejected"
+        rejection_reason = verification_data.get("rejection_reason", "")
+        
+        if status not in ["approved", "rejected"]:
+            raise HTTPException(status_code=400, detail="Status inválido. Use 'approved' ou 'rejected'")
+        
+        # Update document verification status
+        update_data = {
+            "document_status": status,
+            "document_verified_at": datetime.now(timezone.utc).isoformat(),
+            "document_verified_by": current_user["user_id"],
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if status == "rejected" and rejection_reason:
+            update_data["document_rejection_reason"] = rejection_reason
+        else:
+            update_data["document_rejection_reason"] = None
+        
+        result = await db.providers.update_one(
+            {"id": provider_id},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count > 0:
+            status_text = "aprovados" if status == "approved" else "reprovados"
+            return {
+                "success": True,
+                "message": f"Documentos {status_text} com sucesso",
+                "provider_id": provider_id,
+                "status": status
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Erro ao atualizar status de verificação")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error verifying documents: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao verificar documentos")
+
+
 @api_router.post("/admin/providers/{provider_id}/renew-subscription")
 async def renew_provider_subscription(provider_id: str, current_user=Depends(get_current_admin)):
     """Renew a provider's subscription (admin action)"""
