@@ -6094,8 +6094,31 @@ async def efi_payment_webhook(request: Request):
         print("[EFI WEBHOOK] Received notification")
         print(f"[EFI WEBHOOK] Payload: {payload}")
         
-        # Parse JSON
-        webhook_data = json.loads(payload)
+        # Parse form-data or JSON
+        webhook_data = {}
+        try:
+            # Try JSON first
+            webhook_data = json.loads(payload)
+        except:
+            # If not JSON, parse as form-data
+            # Format: notification=de27c3fe-700c-4892-b11a-e752713c3d08
+            if "notification=" in payload:
+                notification_id = payload.split("notification=")[1].split("&")[0]
+                print(f"[EFI WEBHOOK] Notification ID from form-data: {notification_id}")
+                
+                # Fetch notification details from Efi Bank API
+                efi_service = get_efi_service()
+                notification_details = efi_service.get_notification_details(notification_id)
+                
+                if notification_details:
+                    webhook_data = notification_details
+                    print(f"[EFI WEBHOOK] Fetched notification details: {notification_details}")
+                else:
+                    print(f"[EFI WEBHOOK] Failed to fetch notification details")
+                    return {"status": "error", "message": "Failed to fetch notification"}
+            else:
+                print(f"[EFI WEBHOOK] Unknown payload format")
+                return {"status": "error", "message": "Unknown payload format"}
         
         # Extract signature if present
         signature = request.headers.get("X-Efi-Signature", "")
