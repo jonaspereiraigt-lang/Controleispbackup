@@ -3636,8 +3636,6 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
     if provider_data.due_day not in [5, 10, 15, 20, 25]:
         raise HTTPException(status_code=400, detail="Dia de vencimento deve ser 5, 10, 15, 20 ou 25")
     
-    # Logo removido - identificação por nome fantasia
-    
     existing_provider = await db.providers.find_one({
         "$or": [
             {"email": provider_data.email},
@@ -3649,6 +3647,35 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
     
     # Get client IP
     client_ip = request.client.host if request.client else "unknown"
+    
+    # Process logo upload if provided
+    logo_url = None
+    if provider_data.logo_photo:
+        try:
+            # Upload logo to R2
+            logo_base64 = provider_data.logo_photo
+            if ',' in logo_base64:
+                logo_base64 = logo_base64.split(',')[1]
+            
+            import base64
+            logo_data = base64.b64decode(logo_base64)
+            
+            # Generate unique filename
+            logo_filename = f"provider-logo-{uuid.uuid4()}.png"
+            
+            # Upload to R2
+            s3_client.put_object(
+                Bucket=R2_BUCKET_NAME,
+                Key=f"logos/{logo_filename}",
+                Body=logo_data,
+                ContentType="image/png"
+            )
+            
+            logo_url = f"{R2_PUBLIC_URL}/logos/{logo_filename}"
+            print(f"[REGISTER] Logo uploaded: {logo_url}")
+        except Exception as e:
+            print(f"[REGISTER] Error uploading logo: {e}")
+            # Don't fail registration if logo upload fails
     
     # Usar email como username para manter compatibilidade
     provider = Provider(
@@ -3669,6 +3696,7 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
         id_front_photo=provider_data.id_front_photo,
         id_back_photo=provider_data.id_back_photo,
         holding_id_photo=provider_data.holding_id_photo,
+        logo_url=logo_url,  # Logo URL from R2
         contract_accepted=True,
         contract_acceptance_date=datetime.now(timezone.utc),
         contract_ip=client_ip,
