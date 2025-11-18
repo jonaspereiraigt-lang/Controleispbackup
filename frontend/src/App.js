@@ -1452,6 +1452,7 @@ const Login = ({ onLogin }) => {
         id_front_photo: null,
         id_back_photo: null,
         holding_id_photo: null,
+        logo_photo: null,
         contract_accepted: false,
         due_day: 10
       });
