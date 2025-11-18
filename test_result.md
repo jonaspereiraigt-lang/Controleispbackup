@@ -117,7 +117,7 @@ frontend:
         agent: "main"
         comment: "Adicionado campo de upload de logo no formulário de registro do provedor. Campo opcional logo_photo adicionado ao registerData. Campo posicionado após as fotos de identificação e antes do contrato. Backend atualizado: modelo ProviderCreate com campo logo_photo opcional, endpoint /provider/register processa upload da logo para Cloudflare R2 e salva URL no campo logo_url do provider. Logo aparecerá nos contratos e mensagens de cobrança."
 
-  - task: "Aba de Documentos no Admin Dashboard para verificação de identidade"
+  - task: "Sistema de Aprovação/Reprovação de Documentos no Admin Dashboard"
     implemented: true
     working: "NA"
     file: "/app/frontend/src/components/AdminProviderDashboardSimple.jsx, /app/backend/server.py"
@@ -127,7 +127,7 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "SISTEMA DE SEGURANÇA implementado. Backend atualizado: Endpoint /provider/register agora faz upload automático das 3 fotos de identificação (frente RG/CNH, verso RG/CNH, segurando documento) para Cloudflare R2 na pasta /documents/. URLs públicas são salvas nos campos id_front_photo, id_back_photo e holding_id_photo. Frontend: Nova aba 'Documentos' adicionada ao AdminProviderDashboardSimple com ícone Shield. Aba mostra as 3 fotos lado a lado com preview, botão para ver em tamanho real, dados do responsável (nome, CPF, CNPJ, email, telefone, cidade/estado) e observações de segurança. Admin pode verificar se documentos são reais e se fotos correspondem aos dados cadastrados."
+        comment: "SISTEMA DE SEGURANÇA E VERIFICAÇÃO implementado completamente. BACKEND: 1) Modelo Provider expandido com campos document_status (pending/approved/rejected), document_verified_at, document_verified_by, document_rejection_reason. 2) Endpoint /provider/register faz upload automático das 3 fotos para R2 (/documents/). 3) Novo endpoint PUT /admin/providers/{id}/verify-documents para aprovar ou reprovar documentos, salvando admin_id, data e motivo. FRONTEND: 1) Aba 'Documentos' com badge de status (⏳ Pendente amarelo, ✓ Aprovado verde, ✗ Reprovado vermelho). 2) Botões 'Aprovar Documentos' e 'Reprovar Documentos'. 3) Modal de reprovação com campo obrigatório de motivo. 4) Exibição de data de verificação e motivo da reprovação (se aplicável). 5) Botão aprovar fica desabilitado se já aprovado. 6) Preview das 3 fotos, botão ver em tamanho real, dados do responsável. BENEFÍCIO: Admin não precisa mais verificar documentos já aprovados, economizando tempo e mantendo histórico de verificação."
 
   - task: "Logo do provedor em contratos/mensagens de cobrança"
     implemented: true
