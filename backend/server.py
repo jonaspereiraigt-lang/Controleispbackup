@@ -1425,11 +1425,15 @@ async def generate_automatic_installments(provider_id: str, due_day: int):
             due_days = (due_date - start_date).days
             
             # Create boleto via Efi Bank
+            print(f"[INSTALLMENT {installment_number}/12] Tentando criar boleto - Valor: R$ {amount:.2f}, Vencimento: {due_date.date()}, Dias: {due_days}")
             payment_result = await create_efi_boleto_payment(provider_id, amount, due_days=due_days)
             
             if not payment_result.get("success"):
-                print(f"Failed to create installment {installment_number}: {payment_result.get('error')}")
+                error_msg = payment_result.get('error', 'Erro desconhecido')
+                print(f"❌ [INSTALLMENT {installment_number}/12] FALHOU - Erro: {error_msg}")
                 continue
+            
+            print(f"✅ [INSTALLMENT {installment_number}/12] Criado com sucesso - Charge ID: {payment_result.get('charge_id')}")
             
             # Save payment to database
             payment_doc = {
