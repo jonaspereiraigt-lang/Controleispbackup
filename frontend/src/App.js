@@ -1290,9 +1290,9 @@ const Login = ({ onLogin }) => {
           const data = response.data;
           
           // Limpar e validar telefone - pegar apenas números e limitar a 11 dígitos
-          let cleanPhone = prev.phone;
-          if (data.telefone) {
-            cleanPhone = data.telefone.replace(/\D/g, ''); // Remove tudo que não é número
+          let cleanPhone = data.telefone || '';
+          if (cleanPhone) {
+            cleanPhone = cleanPhone.replace(/\D/g, ''); // Remove tudo que não é número
             // Se tem mais de 11 dígitos, pegar apenas os primeiros 11
             if (cleanPhone.length > 11) {
               console.log(`Telefone da API muito longo (${cleanPhone.length} dígitos), usando apenas os primeiros 11`);
@@ -1305,7 +1305,7 @@ const Login = ({ onLogin }) => {
             name: data.nome || prev.name, // Razão Social
             nome_fantasia: data.fantasia || prev.nome_fantasia, // Nome Fantasia
             email: data.email || prev.email,
-            phone: cleanPhone,
+            phone: cleanPhone || prev.phone, // Usa telefone limpo da API ou mantém o anterior
             address: data.endereco.logradouro || prev.address,
             bairro: data.endereco.bairro || prev.bairro,
             cep: data.endereco.cep || prev.cep,
