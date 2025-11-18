@@ -245,7 +245,9 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Correção erro 400 na geração de boletos - Dados do Provider"
+    - "Campo Confirmar Senha no formulário de registro"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
