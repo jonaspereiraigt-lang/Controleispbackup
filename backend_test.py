@@ -1002,19 +1002,24 @@ class BackendTester:
             if result.returncode == 0:
                 log_content = result.stdout
                 
-                # Look for error patterns
+                # Look for actual error patterns (not INFO logs)
                 error_patterns = [
                     "ERROR",
-                    "400",
-                    "parcela",
-                    "boleto",
-                    "Efi",
+                    "CRITICAL",
+                    "EXCEPTION",
+                    "Traceback",
                     "CPF inválido",
-                    "Dados de endereço incompletos"
+                    "Dados de endereço incompletos",
+                    "400 Bad Request",
+                    "Failed to create"
                 ]
                 
                 found_errors = []
                 for line in log_content.split('\n')[-20:]:  # Check last 20 lines
+                    # Skip INFO level logs
+                    if " - INFO - " in line:
+                        continue
+                    
                     for pattern in error_patterns:
                         if pattern.lower() in line.lower():
                             found_errors.append(line.strip())
