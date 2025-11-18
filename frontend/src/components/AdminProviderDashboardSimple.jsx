@@ -18,6 +18,8 @@ const AdminProviderDashboardSimple = () => {
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [selectedProviderPayments, setSelectedProviderPayments] = useState([]);
   const [paymentFilter, setPaymentFilter] = useState('todos');
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   const [formData, setFormData] = useState({
     name: '', email: '', cnpj: '', cpf: '', phone: '', address: '',
