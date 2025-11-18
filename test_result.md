@@ -105,6 +105,18 @@
 user_problem_statement: "Erro 400 ao gerar parcelas automáticas no ambiente de produção do Efi Bank quando provedor aceita os termos. Também adicionar validação de confirmação de senha no formulário de registro."
 
 frontend:
+  - task: "Campo Confirmar Senha no formulário de registro"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Adicionado campo 'Confirmar Senha' no formulário de registro de provedor com validação para verificar se as senhas coincidem antes de submeter o formulário. Campo adicionado após o campo 'Senha de Acesso' e antes do campo 'Dia de Vencimento'. Validação implementada na função handleRegister."
+
   - task: "Correção erro React DOM insertBefore e removeChild"
     implemented: true
     working: true
