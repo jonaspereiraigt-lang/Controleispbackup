@@ -1610,21 +1610,38 @@ const Login = ({ onLogin }) => {
                 </div>
               </div>
               
-              <div>
-                <Label htmlFor="register-cnpj">CNPJ</Label>
-                <Input
-                  id="register-cnpj"
-                  name="cnpj"
-                  value={registerData.cnpj}
-                  onChange={handleRegisterInputChange}
-                  onBlur={(e) => handleCnpjBlur(e.target.value)}
-                  placeholder="00.000.000/0000-00 (busca automática de dados)"
-                  required
-                  data-testid="register-cnpj-input"
-                />
-                <p className="text-xs text-green-600 mt-1">
-                  💡 Digite o CNPJ completo para buscar: Razão Social, Nome Fantasia, Endereço e Contatos
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="register-cnpj">CNPJ da Empresa *</Label>
+                  <Input
+                    id="register-cnpj"
+                    name="cnpj"
+                    value={registerData.cnpj}
+                    onChange={handleRegisterInputChange}
+                    onBlur={(e) => handleCnpjBlur(e.target.value)}
+                    placeholder="00.000.000/0000-00"
+                    required
+                    data-testid="register-cnpj-input"
+                  />
+                  <p className="text-xs text-green-600 mt-1">
+                    💡 Busca automática de dados ao digitar
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="register-cpf">CPF do Responsável *</Label>
+                  <Input
+                    id="register-cpf"
+                    name="cpf"
+                    value={registerData.cpf}
+                    onChange={handleRegisterInputChange}
+                    placeholder="000.000.000-00"
+                    required
+                    data-testid="register-cpf-input"
+                  />
+                  <p className="text-xs text-gray-600 mt-1">
+                    CPF do sócio/responsável pela empresa
+                  </p>
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
