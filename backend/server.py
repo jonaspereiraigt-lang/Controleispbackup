@@ -3802,9 +3802,13 @@ async def get_client_contract(client_id: str, current_user=Depends(get_current_p
     current_date = contract_date
     current_datetime = contract_datetime
     
+    # Get provider logo for contract header
+    provider_logo = provider.get("logo_url", "")
+    logo_section = f"\n[LOGO DO PROVEDOR: {provider_logo}]\n" if provider_logo else ""
+    
     contract_text = f"""📜 CONTRATO DE ADESÃO - CONTROL-ISP (Versão 3.0 - Inclui LGPD)
 ================================================
-
+{logo_section}
 DADOS DO PROVEDOR:
 Empresa: {provider["name"]}
 Email: {provider["email"]}
