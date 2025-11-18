@@ -4291,13 +4291,20 @@ const ProviderDashboard = ({ onLogout }) => {
     loadClientReminders();
     loadProviderLogo();
     loadProviderNotifications();
+    loadNotifications();
     loadScheduledReminders(); // Carregar agendamentos automaticamente
     loadIntegrationTypes();
     loadProviderIntegrations();
+    
+    // Recarregar notificações a cada 30 segundos
+    const intervalId = setInterval(() => {
+      loadNotifications();
+    }, 30000);
 
     // Cleanup interceptor on unmount
     return () => {
       axios.interceptors.response.eject(responseInterceptor);
+      clearInterval(intervalId);
     };
   }, []);
 
