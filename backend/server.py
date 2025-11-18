@@ -1516,8 +1516,8 @@ async def create_efi_boleto_payment(provider_id: str, amount: float = 199.00, du
             "phone": provider.get("phone", ""),
             "cep": provider.get("cep", ""),
             "address": provider.get("address", ""),
-            "number": provider.get("number", ""),
-            "bairro": provider.get("bairro", ""),
+            "number": provider.get("number", provider.get("address_number", "")),
+            "bairro": provider.get("bairro", provider.get("neighborhood", "")),
             "city": provider.get("city", ""),
             "state": provider.get("state", "")
         }
