@@ -5413,7 +5413,7 @@ async def update_payment_status(
     status_data: dict,
     current_user=Depends(get_current_provider)
 ):
-    """Update payment status (mark as paid)"""
+    """Update payment status (mark as paid) - LOCAL ONLY"""
     provider_id = current_user["user_id"]
     
     try:
@@ -5426,17 +5426,28 @@ async def update_payment_status(
         if new_status not in ["paid", "pending", "cancelled"]:
             raise HTTPException(status_code=400, detail="Status inválido")
         
-        # Update payment status
+        charge_id = payment.get("charge_id")
+        
+        print(f"[STATUS] Atualizando status de {payment_id} para {new_status}")
+        if charge_id:
+            print(f"[STATUS] ⚠️ Charge ID: {charge_id} - Status alterado APENAS LOCALMENTE")
+            print(f"[STATUS] 📝 O status no Efi Bank não é alterado. Use o Efi Bank para baixa real.")
+        
+        # Update payment status locally
         result = await db.payments.update_one(
             {"id": payment_id},
             {"$set": {
                 "status": new_status,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "paid_at": datetime.now(timezone.utc).isoformat() if new_status == "paid" else None
             }}
         )
         
         if result.modified_count > 0:
-            return {"success": True, "message": f"Pagamento marcado como {new_status}"}
+            message = f"Pagamento marcado como {new_status}"
+            if new_status == "paid":
+                message += " (registro local - não afeta Efi Bank)"
+            return {"success": True, "message": message}
         else:
             raise HTTPException(status_code=500, detail="Erro ao atualizar pagamento")
         
