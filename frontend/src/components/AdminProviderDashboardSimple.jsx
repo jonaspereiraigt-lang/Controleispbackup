@@ -728,7 +728,7 @@ const AdminProviderDashboardSimple = () => {
 
                               {/* Ações */}
                               <div className="flex flex-wrap gap-2 pt-3 border-t">
-                                {payment.status === 'pending' && (
+                                {(payment.status === 'pending' || payment.status === 'waiting') && (
                                   <button
                                     onClick={() => handleConfirmPayment(payment.id)}
                                     className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700"
@@ -737,8 +737,8 @@ const AdminProviderDashboardSimple = () => {
                                   </button>
                                 )}
                                 
-                                {/* Abrir Boleto - só para pending */}
-                                {payment.link && payment.status === 'pending' && (
+                                {/* Abrir Boleto - para pending e waiting */}
+                                {payment.link && (payment.status === 'pending' || payment.status === 'waiting') && (
                                   <button
                                     onClick={() => handlePrintBoleto(payment)}
                                     className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
@@ -747,8 +747,8 @@ const AdminProviderDashboardSimple = () => {
                                   </button>
                                 )}
                                 
-                                {/* Copiar PIX - só para pending */}
-                                {payment.qr_code && payment.status === 'pending' && (
+                                {/* Copiar PIX - para pending e waiting */}
+                                {payment.qr_code && (payment.status === 'pending' || payment.status === 'waiting') && (
                                   <button
                                     onClick={() => handleCopyPix(payment.qr_code)}
                                     className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
@@ -766,8 +766,8 @@ const AdminProviderDashboardSimple = () => {
                                   </button>
                                 )}
 
-                                {/* Copiar Código de Barras - só para pending */}
-                                {payment.barcode && payment.status === 'pending' && (
+                                {/* Copiar Código de Barras - para pending e waiting */}
+                                {payment.barcode && (payment.status === 'pending' || payment.status === 'waiting') && (
                                   <button
                                     onClick={() => handleCopyPix(payment.barcode)}
                                     className="px-3 py-1.5 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
