@@ -285,7 +285,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Aba de Documentos no Admin Dashboard para verificação de identidade"
+    - "Sistema de Aprovação/Reprovação de Documentos no Admin Dashboard"
     - "Upload de Logo no cadastro de provedor"
     - "Logo do provedor em contratos/mensagens de cobrança"
     - "Campo Confirmar Senha no formulário de registro"
