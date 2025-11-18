@@ -241,6 +241,55 @@ async def run_scheduled_auto_sync():
         print(f"\n❌ ERRO NO SCHEDULER AUTO-SYNC: {str(e)}\n")
 
 
+# System Configuration Model
+class SystemConfig(BaseModel):
+    backend_url: Optional[str] = None
+    webhook_url: Optional[str] = None
+    updated_by: Optional[str] = None
+    updated_at: Optional[str] = None
+
+# Endpoints para Configurações do Sistema
+@api_router.get("/admin/system-config")
+async def get_system_config(current_user=Depends(get_current_admin)):
+    """Get system configuration (admin only)"""
+    try:
+        config = await db.system_config.find_one({}) or {}
+        return {
+            "backend_url": config.get("backend_url", ""),
+            "webhook_url": config.get("webhook_url", ""),
+            "updated_by": config.get("updated_by", ""),
+            "updated_at": config.get("updated_at", "")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao carregar configurações: {str(e)}")
+
+@api_router.put("/admin/system-config")
+async def update_system_config(
+    config: SystemConfig, 
+    current_user=Depends(get_current_admin)
+):
+    """Update system configuration (admin only)"""
+    try:
+        config_data = {
+            "backend_url": config.backend_url or "",
+            "webhook_url": config.webhook_url or "",
+            "updated_by": current_user.get("email", ""),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Upsert configuration
+        await db.system_config.replace_one(
+            {}, 
+            config_data, 
+            upsert=True
+        )
+        
+        return {"message": "Configurações atualizadas com sucesso", "config": config_data}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar configurações: {str(e)}")
+
+
 # Utility Functions
 def validate_cpf(cpf: str) -> bool:
     """Valida CPF brasileiro usando brazilnum"""
