@@ -9138,16 +9138,13 @@ const ProviderDashboard = ({ onLogout }) => {
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex gap-2 flex-wrap">
                   <button className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm font-medium">
-                    Todos ({myPayments.length})
+                    Todos ({myPayments.filter(p => p.status !== 'canceled' && p.status !== 'cancelled').length})
                   </button>
                   <button className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">
-                    Em Aberto ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) >= new Date()).length})
+                    Em Aberto ({myPayments.filter(p => (p.status === 'pending' || p.status === 'waiting') && new Date(p.expires_at) >= new Date()).length})
                   </button>
                   <button className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">
-                    Atrasados ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) < new Date()).length})
-                  </button>
-                  <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm font-medium">
-                    Cancelados ({myPayments.filter(p => p.status === 'cancelled' || p.status === 'canceled').length})
+                    Atrasados ({myPayments.filter(p => (p.status === 'pending' || p.status === 'waiting') && new Date(p.expires_at) < new Date()).length})
                   </button>
                   <button className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-sm font-medium">
                     Pagos ({myPayments.filter(p => p.status === 'paid').length})
