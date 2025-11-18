@@ -160,6 +160,17 @@ class EfiPaymentService:
             logger.info(f"Efi response type: {type(response)}")
             logger.info(f"Efi response: {response}")
             
+            # Log error details if not successful
+            if not (isinstance(response, dict) and response.get("code") == 200):
+                error_msg = response.get("error_description") if isinstance(response, dict) else str(response)
+                logger.error(f"❌ EFI BANK ERROR - Code: {response.get('code') if isinstance(response, dict) else 'N/A'}")
+                logger.error(f"❌ EFI BANK ERROR - Message: {error_msg}")
+                logger.error(f"❌ EFI BANK ERROR - Full Response: {response}")
+                return {
+                    "success": False,
+                    "error": f"Efi Bank: {error_msg}"
+                }
+            
             if isinstance(response, dict) and response.get("code") == 200:
                 data = response.get("data", {})
                 charge_id = data.get("charge_id")
