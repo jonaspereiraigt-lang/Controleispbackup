@@ -5938,22 +5938,36 @@ async def efi_payment_webhook(request: Request):
             print(f"[EFI WEBHOOK] Charge ID: {charge_id}, Status: {status}")
             
             if charge_id:
-                # Find payment record
-                payment_record = await db.payments.find_one({"payment_id": str(charge_id)})
+                # Find payment record - try both payment_id and charge_id
+                payment_record = await db.payments.find_one({
+                    "$or": [
+                        {"payment_id": str(charge_id)},
+                        {"charge_id": str(charge_id)}
+                    ]
+                })
                 
                 if payment_record:
-                    print(f"[EFI WEBHOOK] Found payment record for charge {charge_id}")
+                    print(f"[EFI WEBHOOK] ✅ Found payment record for charge {charge_id}")
+                    print(f"[EFI WEBHOOK] Provider ID: {payment_record.get('provider_id')}")
+                    print(f"[EFI WEBHOOK] Current status: {payment_record.get('status')}")
                     
                     # Map Efi status to our status
-                    new_status = "paid" if status in ["paid", "pago", "confirmed"] else status
+                    new_status = "paid" if status in ["paid", "pago", "confirmed", "settled"] else status
                     
                     # Update payment status
-                    await db.payments.update_one(
-                        {"payment_id": str(charge_id)},
-                        {"$set": {"status": new_status}}
+                    update_result = await db.payments.update_one(
+                        {"_id": payment_record["_id"]},
+                        {"$set": {
+                            "status": new_status,
+                            "paid_at": datetime.now(timezone.utc).isoformat() if new_status == "paid" else None,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
                     )
                     
-                    print(f"[EFI WEBHOOK] Payment status updated to: {new_status}")
+                    if update_result.modified_count > 0:
+                        print(f"[EFI WEBHOOK] ✅ Payment status updated to: {new_status}")
+                    else:
+                        print(f"[EFI WEBHOOK] ⚠️ Payment status not modified (already up to date)")
                     
                     # If payment is confirmed, activate subscription
                     if new_status == "paid":
@@ -5970,9 +5984,15 @@ async def efi_payment_webhook(request: Request):
                                 }}
                             )
                             
-                            print(f"[EFI WEBHOOK] Subscription activated successfully")
+                            print(f"[EFI WEBHOOK] ✅ Subscription activated successfully")
                 else:
-                    print(f"[EFI WEBHOOK] Payment record not found for charge {charge_id}")
+                    print(f"[EFI WEBHOOK] ❌ Payment record not found for charge {charge_id}")
+                    print(f"[EFI WEBHOOK] Searching all payments to debug...")
+                    
+                    # Debug: listar algumas parcelas
+                    all_payments = await db.payments.find({}).limit(5).to_list(5)
+                    for p in all_payments:
+                        print(f"  - Payment ID: {p.get('id')}, Charge ID: {p.get('charge_id')}, Payment ID field: {p.get('payment_id')}")
         
         return {"status": "received", "code": 200}
         
