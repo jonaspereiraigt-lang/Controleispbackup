@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Boleto Generation and Link/PDF Fields Verification
-Tests the complete flow of generating boletos and verifying that 'link' and 'pdf' fields
-are correctly returned for provider's "Meu Financeiro" functionality
+Backend Testing Script for Onboarding Flow with Automatic Installment Generation
+Tests the complete onboarding flow where provider accepts terms and 12 installments are automatically generated
+Specifically tests the fix for error 400 in production environment with real provider data
 """
 
 import requests
