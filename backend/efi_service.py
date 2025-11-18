@@ -36,12 +36,28 @@ class EfiPaymentService:
         
         # Add certificate for production mode
         if not self.sandbox:
-            certificate_path = os.path.join(os.path.dirname(__file__), 'producao-controle-isp.p12')
-            if os.path.exists(certificate_path):
-                self.credentials['certificate'] = certificate_path
-                logger.info("Production certificate loaded for Efi Bank")
+            # Try to get certificate from base64 environment variable first
+            cert_base64 = os.getenv('EFI_CERTIFICATE_BASE64')
+            if cert_base64:
+                import base64
+                import tempfile
+                try:
+                    # Decode base64 and save to temporary file
+                    cert_data = base64.b64decode(cert_base64)
+                    with tempfile.NamedTemporaryFile(suffix='.p12', delete=False) as temp_cert:
+                        temp_cert.write(cert_data)
+                        self.credentials['certificate'] = temp_cert.name
+                        logger.info("Production certificate loaded from environment variable")
+                except Exception as e:
+                    logger.error(f"Failed to decode certificate from base64: {str(e)}")
             else:
-                logger.warning(f"Production certificate not found at: {certificate_path}")
+                # Fallback to local file
+                certificate_path = os.path.join(os.path.dirname(__file__), 'producao-controle-isp.p12')
+                if os.path.exists(certificate_path):
+                    self.credentials['certificate'] = certificate_path
+                    logger.info("Production certificate loaded from local file")
+                else:
+                    logger.warning(f"No production certificate found")
         
         try:
             self.gn = Gerencianet(self.credentials)
