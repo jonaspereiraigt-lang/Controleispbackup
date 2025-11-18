@@ -658,7 +658,7 @@ const AdminProviderDashboardSimple = () => {
                             const overdue = isOverdue(payment);
                             const isPaid = payment.status === 'paid';
                             const isCanceled = payment.status === 'canceled' || payment.status === 'cancelled';
-                            const isPending = payment.status === 'pending';
+                            const isPending = payment.status === 'pending' || payment.status === 'waiting';
                             
                             return (
                             <div key={payment.id} className={`bg-white border rounded-lg p-4 hover:shadow-md transition-shadow ${
@@ -666,7 +666,7 @@ const AdminProviderDashboardSimple = () => {
                               isCanceled ? 'border-l-4 border-l-gray-400 bg-gray-50' :
                               overdue ? 'border-l-4 border-l-red-500 bg-red-50' :
                               isPending ? 'border-l-4 border-l-yellow-500 bg-yellow-50' :
-                              'border-l-4 border-l-blue-500 bg-blue-50'
+                              'bg-white'
                             }`}>
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
@@ -675,7 +675,7 @@ const AdminProviderDashboardSimple = () => {
                                     isCanceled ? 'bg-gray-400' :
                                     overdue ? 'bg-red-500' :
                                     isPending ? 'bg-yellow-500' :
-                                    'bg-blue-500'
+                                    'bg-gray-300'
                                   }`} />
                                   <div>
                                     <h4 className="font-semibold text-gray-900">
@@ -696,13 +696,13 @@ const AdminProviderDashboardSimple = () => {
                                     isCanceled ? 'bg-gray-100 text-gray-700' :
                                     overdue ? 'bg-red-100 text-red-800' :
                                     isPending ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-blue-100 text-blue-800'
+                                    'bg-gray-50 text-gray-600'
                                   }`}>
                                     {isPaid ? 'Recebido' :
                                      isCanceled ? 'Cancelado' :
                                      overdue ? 'Atrasado' :
                                      isPending ? 'Em Aberto' :
-                                     'Aguardando'}
+                                     payment.status}
                                   </span>
                                 </div>
                               </div>
