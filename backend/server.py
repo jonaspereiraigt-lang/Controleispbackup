@@ -5452,7 +5452,7 @@ async def delete_payment(
     payment_id: str,
     current_user=Depends(get_current_provider)
 ):
-    """Delete/cancel a payment"""
+    """Delete/cancel a payment and cancel in Efi Bank"""
     provider_id = current_user["user_id"]
     
     try:
@@ -5461,11 +5461,38 @@ async def delete_payment(
         if not payment:
             raise HTTPException(status_code=404, detail="Pagamento não encontrado")
         
-        # Delete payment
+        # Cancel charge in Efi Bank if charge_id exists
+        charge_id = payment.get("charge_id")
+        efi_cancelled = False
+        
+        if charge_id:
+            try:
+                print(f"[CANCEL] Tentando cancelar cobrança {charge_id} no Efi Bank...")
+                efi_result = get_efi_service().cancel_charge(int(charge_id))
+                
+                if efi_result.get("success"):
+                    print(f"[CANCEL] ✅ Cobrança {charge_id} cancelada no Efi Bank")
+                    efi_cancelled = True
+                else:
+                    print(f"[CANCEL] ⚠️ Erro ao cancelar no Efi Bank: {efi_result.get('error')}")
+                    # Continua com cancelamento local mesmo se falhar no Efi
+            except Exception as e:
+                print(f"[CANCEL] ⚠️ Exceção ao cancelar no Efi Bank: {e}")
+                # Continua com cancelamento local mesmo se falhar no Efi
+        else:
+            print(f"[CANCEL] ⚠️ Pagamento sem charge_id, cancelando apenas localmente")
+        
+        # Delete payment from local database
         result = await db.payments.delete_one({"id": payment_id})
         
         if result.deleted_count > 0:
-            return {"success": True, "message": "Pagamento cancelado com sucesso"}
+            message = "Pagamento cancelado com sucesso"
+            if efi_cancelled:
+                message += " (sincronizado com Efi Bank)"
+            else:
+                message += " (apenas localmente - cobrança permanece no Efi Bank)"
+            
+            return {"success": True, "message": message, "efi_cancelled": efi_cancelled}
         else:
             raise HTTPException(status_code=500, detail="Erro ao cancelar pagamento")
         
