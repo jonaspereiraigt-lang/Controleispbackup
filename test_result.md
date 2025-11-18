@@ -153,6 +153,21 @@ frontend:
         agent: "main"
         comment: "Adicionado campo 'Confirmar Senha' no formulário de registro de provedor com validação para verificar se as senhas coincidem antes de submeter o formulário. Campo adicionado após o campo 'Senha de Acesso' e antes do campo 'Dia de Vencimento'. Validação implementada na função handleRegister."
 
+  - task: "Sistema de Notificações em Tempo Real"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js, /app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Frontend quebrado com erro crítico: SyntaxError: Identifier 'notifications' has already been declared (linha 4210). Também erro duplicado com markNotificationAsRead (linha 5321)."
+      - working: true
+        agent: "main"
+        comment: "ERRO DE COMPILAÇÃO CORRIGIDO COM SUCESSO. PROBLEMA: Múltiplas declarações duplicadas de variáveis e funções relacionadas ao sistema de notificações. CORREÇÕES: 1) Removida declaração duplicada de notifications (havia 3 declarações no total), 2) Removida função duplicada markNotificationAsRead (linha 5321), 3) Consolidadas funções de carregamento - mantida apenas loadProviderNotifications para o provider, 4) Atualizadas todas as 5 referências de loadNotifications() para loadProviderNotifications() no contexto do provider. Frontend compilando sem erros. Sistema de notificações backend implementado: webhook Efi Bank cria notificações na collection, endpoints GET /provider/notifications e POST /provider/notifications/{id}/read prontos. UI do sino com badge e painel de notificações implementado. Necessita teste completo do fluxo: webhook → notificação → exibição no UI."
+
   - task: "Correção erro React DOM insertBefore e removeChild"
     implemented: true
     working: true
