@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Edit, Trash2, Search, Save, X, User, MapPin, Phone, FileText, Key, DollarSign, Shield } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const BACKEND_URL = 'https://www.controleisp.com.br';
 const API = `${BACKEND_URL}/api`;
 
 // Dashboard de Gestão de PROVEDORES - Updated 2025
