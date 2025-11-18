@@ -383,6 +383,10 @@ const AdminProviderDashboardSimple = () => {
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2">
             <X className="w-4 h-4" /> Cancelar
           </button>
+          <button onClick={() => setShowConfigModal(true)} disabled={loading}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2">
+            <Shield className="w-4 h-4" /> Configurações
+          </button>
           <button onClick={() => selectedProvider && handleDeleteProvider(selectedProvider.id)} disabled={!selectedProvider}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 flex items-center gap-2">
             <Trash2 className="w-4 h-4" /> Deletar
