@@ -1632,6 +1632,27 @@ const Login = ({ onLogin }) => {
               <DialogTitle>Cadastrar Novo Provedor</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleRegister} className="space-y-4">
+              {/* CNPJ como primeiro campo - preenche dados automaticamente */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                <Label htmlFor="register-cnpj" className="text-lg font-semibold text-blue-900">
+                  🏢 CNPJ da Empresa * (Preencha primeiro)
+                </Label>
+                <Input
+                  id="register-cnpj"
+                  name="cnpj"
+                  value={registerData.cnpj}
+                  onChange={handleRegisterInputChange}
+                  onBlur={(e) => handleCnpjBlur(e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                  required
+                  className="mt-2 text-lg"
+                  data-testid="register-cnpj-input"
+                />
+                <p className="text-sm text-blue-700 mt-2 font-medium">
+                  💡 Digite o CNPJ e pressione Tab - os dados da empresa serão preenchidos automaticamente!
+                </p>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="register-name">Razão Social</Label>
@@ -1659,22 +1680,6 @@ const Login = ({ onLogin }) => {
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="register-cnpj">CNPJ da Empresa *</Label>
-                  <Input
-                    id="register-cnpj"
-                    name="cnpj"
-                    value={registerData.cnpj}
-                    onChange={handleRegisterInputChange}
-                    onBlur={(e) => handleCnpjBlur(e.target.value)}
-                    placeholder="00.000.000/0000-00"
-                    required
-                    data-testid="register-cnpj-input"
-                  />
-                  <p className="text-xs text-green-600 mt-1">
-                    💡 Busca automática de dados ao digitar
-                  </p>
-                </div>
                 <div>
                   <Label htmlFor="register-cpf">CPF do Responsável *</Label>
                   <Input
