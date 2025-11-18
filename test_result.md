@@ -273,7 +273,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Correção erro 400 na geração de boletos - Dados do Provider"
+    - "Upload de Logo no cadastro de provedor"
+    - "Logo do provedor em contratos/mensagens de cobrança"
     - "Campo Confirmar Senha no formulário de registro"
   stuck_tasks: []
   test_all: false
