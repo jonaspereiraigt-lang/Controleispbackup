@@ -1694,15 +1694,19 @@ const Login = ({ onLogin }) => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="register-phone">Telefone</Label>
+                  <Label htmlFor="register-phone">Telefone (com DDD)</Label>
                   <Input
                     id="register-phone"
                     name="phone"
                     value={registerData.phone}
                     onChange={handleRegisterInputChange}
+                    placeholder="(88) 98765-4321"
                     required
                     data-testid="register-phone-input"
                   />
+                  <p className="text-xs text-gray-600 mt-1">
+                    📱 Formato: DDD + número (ex: 11987654321)
+                  </p>
                 </div>
               </div>
 
