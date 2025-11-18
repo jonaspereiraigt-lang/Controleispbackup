@@ -215,6 +215,87 @@ const AdminProviderDashboardSimple = () => {
     alert('Código PIX copiado para área de transferência!');
   };
 
+  const handleApproveDocuments = async () => {
+    if (!selectedProvider) return;
+    
+    if (!window.confirm('Tem certeza que deseja APROVAR os documentos deste provedor?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API}/admin/providers/${selectedProvider.id}/verify-documents`,
+        { status: 'approved' },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      alert('✅ Documentos aprovados com sucesso!');
+      
+      // Atualizar provider local
+      setSelectedProvider(prev => ({
+        ...prev,
+        document_status: 'approved',
+        document_verified_at: new Date().toISOString()
+      }));
+      
+      // Recarregar lista de provedores
+      loadProviders();
+    } catch (error) {
+      alert('Erro ao aprovar documentos: ' + (error.response?.data?.detail || 'Erro desconhecido'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectDocuments = async () => {
+    if (!selectedProvider) return;
+    
+    setShowRejectModal(true);
+  };
+
+  const confirmRejectDocuments = async () => {
+    if (!rejectionReason.trim()) {
+      alert('Por favor, informe o motivo da reprovação');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API}/admin/providers/${selectedProvider.id}/verify-documents`,
+        { 
+          status: 'rejected',
+          rejection_reason: rejectionReason
+        },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      alert('❌ Documentos reprovados com sucesso!');
+      
+      // Atualizar provider local
+      setSelectedProvider(prev => ({
+        ...prev,
+        document_status: 'rejected',
+        document_verified_at: new Date().toISOString(),
+        document_rejection_reason: rejectionReason
+      }));
+      
+      // Fechar modal e limpar
+      setShowRejectModal(false);
+      setRejectionReason('');
+      
+      // Recarregar lista de provedores
+      loadProviders();
+    } catch (error) {
+      alert('Erro ao reprovar documentos: ' + (error.response?.data?.detail || 'Erro desconhecido'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedProvider && activeTab === 'financeiro') {
       loadProviderPayments(selectedProvider.id);
