@@ -5318,27 +5318,6 @@ const ProviderDashboard = ({ onLogout }) => {
     }
   };
 
-  const markNotificationAsRead = async (notificationId) => {
-    if (!notificationId) return;
-    
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(`${API}/provider/notifications/${notificationId}/read`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Update local state
-      setNotifications(prev => 
-        Array.isArray(prev) ? prev.map(n => 
-          n.id === notificationId ? { ...n, is_read: true } : n
-        ) : []
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error("Erro ao marcar notificação como lida:", error);
-    }
-  };
-
   const markAllNotificationsAsRead = async () => {
     try {
       const token = localStorage.getItem("token");
