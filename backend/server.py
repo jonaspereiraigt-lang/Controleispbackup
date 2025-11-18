@@ -3648,34 +3648,43 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
     # Get client IP
     client_ip = request.client.host if request.client else "unknown"
     
-    # Process logo upload if provided
-    logo_url = None
-    if provider_data.logo_photo:
+    import base64
+    
+    # Helper function to upload image to R2
+    def upload_image_to_r2(base64_data: str, folder: str, prefix: str) -> str:
+        """Upload base64 image to R2 and return public URL"""
         try:
-            # Upload logo to R2
-            logo_base64 = provider_data.logo_photo
-            if ',' in logo_base64:
-                logo_base64 = logo_base64.split(',')[1]
+            if ',' in base64_data:
+                base64_data = base64_data.split(',')[1]
             
-            import base64
-            logo_data = base64.b64decode(logo_base64)
+            image_data = base64.b64decode(base64_data)
+            filename = f"{prefix}-{uuid.uuid4()}.png"
             
-            # Generate unique filename
-            logo_filename = f"provider-logo-{uuid.uuid4()}.png"
-            
-            # Upload to R2
             s3_client.put_object(
                 Bucket=R2_BUCKET_NAME,
-                Key=f"logos/{logo_filename}",
-                Body=logo_data,
+                Key=f"{folder}/{filename}",
+                Body=image_data,
                 ContentType="image/png"
             )
             
-            logo_url = f"{R2_PUBLIC_URL}/logos/{logo_filename}"
-            print(f"[REGISTER] Logo uploaded: {logo_url}")
+            return f"{R2_PUBLIC_URL}/{folder}/{filename}"
         except Exception as e:
-            print(f"[REGISTER] Error uploading logo: {e}")
-            # Don't fail registration if logo upload fails
+            print(f"[REGISTER] Error uploading {prefix}: {e}")
+            return None
+    
+    # Upload logo if provided
+    logo_url = None
+    if provider_data.logo_photo:
+        logo_url = upload_image_to_r2(provider_data.logo_photo, "logos", "provider-logo")
+        if logo_url:
+            print(f"[REGISTER] Logo uploaded: {logo_url}")
+    
+    # Upload identification photos to R2 for admin verification
+    id_front_url = upload_image_to_r2(provider_data.id_front_photo, "documents", "id-front")
+    id_back_url = upload_image_to_r2(provider_data.id_back_photo, "documents", "id-back")
+    holding_id_url = upload_image_to_r2(provider_data.holding_id_photo, "documents", "holding-id")
+    
+    print(f"[REGISTER] ID documents uploaded - Front: {id_front_url}, Back: {id_back_url}, Holding: {holding_id_url}")
     
     # Usar email como username para manter compatibilidade
     provider = Provider(
@@ -3693,9 +3702,9 @@ async def register_provider(provider_data: ProviderCreate, request: Request):
         bairro=provider_data.bairro,  # Bairro
         city=provider_data.city,  # Cidade
         state=provider_data.state,  # Estado
-        id_front_photo=provider_data.id_front_photo,
-        id_back_photo=provider_data.id_back_photo,
-        holding_id_photo=provider_data.holding_id_photo,
+        id_front_photo=id_front_url or provider_data.id_front_photo,  # R2 URL ou base64 fallback
+        id_back_photo=id_back_url or provider_data.id_back_photo,
+        holding_id_photo=holding_id_url or provider_data.holding_id_photo,
         logo_url=logo_url,  # Logo URL from R2
         contract_accepted=True,
         contract_acceptance_date=datetime.now(timezone.utc),
