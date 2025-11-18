@@ -9094,6 +9094,9 @@ const ProviderDashboard = ({ onLogout }) => {
                   <button className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">
                     Atrasados ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) < new Date()).length})
                   </button>
+                  <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm font-medium">
+                    Cancelados ({myPayments.filter(p => p.status === 'cancelled' || p.status === 'canceled').length})
+                  </button>
                   <button className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-sm font-medium">
                     Pagos ({myPayments.filter(p => p.status === 'paid').length})
                   </button>
