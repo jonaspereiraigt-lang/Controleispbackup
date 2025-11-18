@@ -1050,24 +1050,24 @@ class BackendTester:
     
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Boleto Generation and Link/PDF Fields Verification")
+        print("🚀 Starting Onboarding Flow with Automatic Installment Generation Test")
         print("=" * 80)
-        print("TESTING: Complete flow for boleto generation with 'link' and 'pdf' fields")
-        print("1. Admin generates financial with 2 boleto installments")
-        print("2. Verify admin can see payments with link/pdf fields")
-        print("3. Verify provider can see payments with link/pdf fields")
+        print("TESTING: Complete onboarding flow with automatic 12-installment generation")
+        print("ENVIRONMENT: Efi Bank PRODUCTION (EFI_SANDBOX=false)")
+        print("1. Create new provider with ALL required data (CPF, address, etc.)")
+        print("2. Provider login (verify first_login=true, terms_accepted=false)")
+        print("3. Accept terms (triggers automatic generation of 12 installments)")
+        print("4. Verify 12 installments with correct amounts and Efi Bank data")
         print("=" * 80)
         
-        # Test sequence - focused on the boleto flow
+        # Test sequence - focused on the onboarding flow
         tests = [
             ("Database Connection", self.connect_to_database),
-            ("Create Admin", self.create_admin_if_needed),
-            ("Admin Login", self.admin_login),
-            ("Create Test Provider", self.create_test_provider),
-            ("Provider Login", self.test_provider_login),
-            ("Generate Boleto Installments", self.test_generate_financial_boleto_installments),
-            ("Admin Provider Payments", self.test_admin_provider_payments),
-            ("Provider My Payments", self.test_provider_my_payments),
+            ("Create New Provider", self.test_create_new_provider_with_complete_data),
+            ("Provider First Login", self.test_provider_login_first_time),
+            ("Accept Terms & Generate", self.test_accept_terms_and_generate_installments),
+            ("Verify Installments", self.test_verify_generated_installments),
+            ("Check Backend Logs", self.test_check_backend_logs_for_errors),
             ("Database Payments Check", self.check_database_payments),
         ]
         
