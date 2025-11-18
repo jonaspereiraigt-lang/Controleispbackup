@@ -1772,26 +1772,43 @@ const Login = ({ onLogin }) => {
                   </p>
                 </div>
                 <div>
-                  <Label htmlFor="register-due-day">Dia de Vencimento das Parcelas *</Label>
-                  <select
-                    id="register-due-day"
-                    name="due_day"
-                    value={registerData.due_day}
+                  <Label htmlFor="register-confirm-password">Confirmar Senha *</Label>
+                  <Input
+                    id="register-confirm-password"
+                    name="confirmPassword"
+                    type="password"
+                    value={registerData.confirmPassword}
                     onChange={handleRegisterInputChange}
+                    placeholder="Digite a senha novamente"
                     required
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    data-testid="register-due-day-select"
-                  >
-                    <option value={5}>Dia 5</option>
-                    <option value={10}>Dia 10</option>
-                    <option value={15}>Dia 15</option>
-                    <option value={20}>Dia 20</option>
-                    <option value={25}>Dia 25</option>
-                  </select>
+                    data-testid="register-confirm-password-input"
+                  />
                   <p className="text-xs text-gray-600 mt-1">
-                    💳 Escolha o dia do mês para vencimento das mensalidades
+                    Repita a senha para confirmação
                   </p>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="register-due-day">Dia de Vencimento das Parcelas *</Label>
+                <select
+                  id="register-due-day"
+                  name="due_day"
+                  value={registerData.due_day}
+                  onChange={handleRegisterInputChange}
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  data-testid="register-due-day-select"
+                >
+                  <option value={5}>Dia 5</option>
+                  <option value={10}>Dia 10</option>
+                  <option value={15}>Dia 15</option>
+                  <option value={20}>Dia 20</option>
+                  <option value={25}>Dia 25</option>
+                </select>
+                <p className="text-xs text-gray-600 mt-1">
+                  💳 Escolha o dia do mês para vencimento das mensalidades
+                </p>
               </div>
 
               {/* Logo removido - identificação por nome fantasia */}
