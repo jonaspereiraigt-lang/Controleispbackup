@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit, Trash2, Search, Save, X, User, MapPin, Phone, FileText, Key, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Save, X, User, MapPin, Phone, FileText, Key, DollarSign, Shield } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
