@@ -689,6 +689,150 @@ const AdminProviderDashboardSimple = () => {
                   )}
                 </div>
               )}
+
+              {activeTab === 'documentos' && selectedProvider && (
+                <div className="space-y-6">
+                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                    <h3 className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
+                      <Shield className="w-5 h-5" />
+                      Documentos de Identificação - Verificação de Segurança
+                    </h3>
+                    <p className="text-sm text-yellow-800">
+                      Fotos enviadas pelo provedor durante o cadastro para verificação de identidade.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Frente do RG/CNH */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        📄 Frente do RG/CNH
+                      </h4>
+                      {selectedProvider.id_front_photo ? (
+                        <div className="space-y-3">
+                          <img 
+                            src={selectedProvider.id_front_photo} 
+                            alt="Frente do Documento" 
+                            className="w-full h-48 object-contain border rounded bg-gray-50"
+                          />
+                          <button
+                            onClick={() => window.open(selectedProvider.id_front_photo, '_blank')}
+                            className="w-full px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                          >
+                            🔍 Ver em Tamanho Real
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 flex items-center justify-center bg-gray-100 rounded text-gray-500">
+                          Sem foto
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Verso do RG/CNH */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        📄 Verso do RG/CNH
+                      </h4>
+                      {selectedProvider.id_back_photo ? (
+                        <div className="space-y-3">
+                          <img 
+                            src={selectedProvider.id_back_photo} 
+                            alt="Verso do Documento" 
+                            className="w-full h-48 object-contain border rounded bg-gray-50"
+                          />
+                          <button
+                            onClick={() => window.open(selectedProvider.id_back_photo, '_blank')}
+                            className="w-full px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                          >
+                            🔍 Ver em Tamanho Real
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 flex items-center justify-center bg-gray-100 rounded text-gray-500">
+                          Sem foto
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Segurando o Documento */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        🤳 Segurando o Documento
+                      </h4>
+                      {selectedProvider.holding_id_photo ? (
+                        <div className="space-y-3">
+                          <img 
+                            src={selectedProvider.holding_id_photo} 
+                            alt="Segurando Documento" 
+                            className="w-full h-48 object-contain border rounded bg-gray-50"
+                          />
+                          <button
+                            onClick={() => window.open(selectedProvider.holding_id_photo, '_blank')}
+                            className="w-full px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                          >
+                            🔍 Ver em Tamanho Real
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 flex items-center justify-center bg-gray-100 rounded text-gray-500">
+                          Sem foto
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Informações do Responsável */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">
+                      👤 Dados do Responsável
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500">Nome:</p>
+                        <p className="font-medium">{selectedProvider.name || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">CPF:</p>
+                        <p className="font-medium">{selectedProvider.cpf || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">CNPJ da Empresa:</p>
+                        <p className="font-medium">{selectedProvider.cnpj || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Email:</p>
+                        <p className="font-medium">{selectedProvider.email || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Telefone:</p>
+                        <p className="font-medium">{selectedProvider.phone || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Cidade/Estado:</p>
+                        <p className="font-medium">
+                          {selectedProvider.city && selectedProvider.state 
+                            ? `${selectedProvider.city}/${selectedProvider.state}` 
+                            : '-'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Observações de Segurança */}
+                  <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                    <h4 className="font-semibold text-red-900 mb-2">
+                      ⚠️ Observações de Segurança
+                    </h4>
+                    <ul className="text-sm text-red-800 space-y-1">
+                      <li>• Verifique se as fotos são claras e legíveis</li>
+                      <li>• Confirme se os dados do documento correspondem aos dados cadastrados</li>
+                      <li>• Verifique se a pessoa na foto segurando o documento é a mesma das fotos do documento</li>
+                      <li>• Em caso de suspeita de fraude, bloqueie o provedor imediatamente</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
