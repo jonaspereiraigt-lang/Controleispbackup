@@ -4143,6 +4143,9 @@ const ProviderDashboard = ({ onLogout }) => {
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState([]);
   const [processingBulkAction, setProcessingBulkAction] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   
   // First login / terms modal states
