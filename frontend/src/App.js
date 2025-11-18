@@ -9082,19 +9082,29 @@ const ProviderDashboard = ({ onLogout }) => {
                 </div>
               </div>
 
-              {/* Filtros */}
-              <div className="flex gap-2 flex-wrap">
-                <button className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm font-medium">
-                  Todos ({myPayments.length})
-                </button>
-                <button className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">
-                  Em Aberto ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) >= new Date()).length})
-                </button>
-                <button className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">
-                  Atrasados ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) < new Date()).length})
-                </button>
-                <button className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-sm font-medium">
-                  Pagos ({myPayments.filter(p => p.status === 'paid').length})
+              {/* Sincronização Manual e Filtros */}
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex gap-2 flex-wrap">
+                  <button className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm font-medium">
+                    Todos ({myPayments.length})
+                  </button>
+                  <button className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded text-sm font-medium">
+                    Em Aberto ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) >= new Date()).length})
+                  </button>
+                  <button className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm font-medium">
+                    Atrasados ({myPayments.filter(p => p.status === 'pending' && new Date(p.expires_at) < new Date()).length})
+                  </button>
+                  <button className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-sm font-medium">
+                    Pagos ({myPayments.filter(p => p.status === 'paid').length})
+                  </button>
+                </div>
+                
+                <button
+                  onClick={handleSyncPayments}
+                  disabled={loadingPayments}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+                >
+                  🔄 Sincronizar com Efi Bank
                 </button>
               </div>
 
