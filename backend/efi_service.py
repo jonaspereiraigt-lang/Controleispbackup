@@ -97,6 +97,36 @@ class EfiPaymentService:
                 }
             
             # Step 2: Add payment method (boleto)
+            # Extract and validate provider data
+            cpf = provider_data.get("cpf", "").replace(".", "").replace("-", "")
+            phone = provider_data.get("phone", "").replace("(", "").replace(")", "").replace("-", "").replace(" ", "")
+            cep = provider_data.get("cep", "").replace("-", "")
+            
+            # Validate required fields
+            if not cpf or len(cpf) != 11:
+                raise ValueError(f"CPF inválido ou não fornecido: '{cpf}'. CPF deve ter 11 dígitos.")
+            
+            if not phone or len(phone) < 10:
+                raise ValueError(f"Telefone inválido ou não fornecido: '{phone}'. Telefone deve ter pelo menos 10 dígitos.")
+            
+            if not cep or len(cep) != 8:
+                raise ValueError(f"CEP inválido ou não fornecido: '{cep}'. CEP deve ter 8 dígitos.")
+            
+            street = provider_data.get("address", "")
+            number = provider_data.get("number", "")
+            neighborhood = provider_data.get("bairro", "")
+            city = provider_data.get("city", "")
+            state = provider_data.get("state", "")
+            
+            if not all([street, number, neighborhood, city, state]):
+                missing = []
+                if not street: missing.append("Endereço (Rua)")
+                if not number: missing.append("Número")
+                if not neighborhood: missing.append("Bairro")
+                if not city: missing.append("Cidade")
+                if not state: missing.append("Estado")
+                raise ValueError(f"Dados de endereço incompletos. Faltando: {', '.join(missing)}")
+            
             payment_body = {
                 "payment": {
                     "banking_billet": {
@@ -104,16 +134,16 @@ class EfiPaymentService:
                         "customer": {
                             "name": provider_data.get("name", "")[:80],
                             "email": provider_data.get("email", ""),
-                            "cpf": "12345678909",  # Valid CPF format for testing
-                            "phone_number": "11999999999",  # Fixed format: 11 + 9 + 8 digits
-                            "birth": "1980-01-01",  # Default birth date
+                            "cpf": cpf,
+                            "phone_number": phone,
+                            "birth": "1980-01-01",  # Default birth date (optional field)
                             "address": {
-                                "zipcode": "01000000",
-                                "street": "Rua Exemplo",
-                                "number": "123",
-                                "neighborhood": "Centro",
-                                "city": "São Paulo",
-                                "state": "SP"
+                                "zipcode": cep,
+                                "street": street,
+                                "number": number,
+                                "neighborhood": neighborhood,
+                                "city": city,
+                                "state": state
                             }
                         },
                         "message": "Pagamento da mensalidade do sistema ControleIsp"
