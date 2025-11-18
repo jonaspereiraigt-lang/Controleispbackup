@@ -292,6 +292,18 @@ backend:
         agent: "testing"
         comment: "ENDPOINTS TOTALMENTE FUNCIONAIS: Após correção do bug de timezone no /provider/my-payments, ambos endpoints funcionam perfeitamente: 1) GET /provider/my-payments: Retorna 6 pagamentos com sucesso, incluindo status de bloqueio do provedor, 2) GET /admin/providers/{id}/payments: Retorna 6 pagamentos corretamente. Ambos endpoints mostram os mesmos payment_ids, confirmando consistência dos dados."
 
+  - task: "Sistema de Notificações em Tempo Real - Backend"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "BACKEND DO SISTEMA DE NOTIFICAÇÕES IMPLEMENTADO: 1) Collection 'notifications' definida com campos notification_id (UUID), provider_id, message, type (payment_confirmed/payment_cancelled), is_read, payment_id, created_at, 2) Webhook Efi Bank (POST /api/payment/efi/webhook) atualizado para criar notificações quando status muda para 'paid' ou 'canceled', 3) Endpoint GET /api/provider/notifications retorna todas as notificações do provider com contagem de não lidas, 4) Endpoint POST /api/provider/notifications/{notification_id}/read marca notificação como lida. Frontend corrigido após erro de compilação. Necessita teste completo: simular webhook Efi Bank → verificar criação de notificação → testar endpoints de consulta e marcação de leitura."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
