@@ -366,6 +366,47 @@ class EfiPaymentService:
                 "error": str(e)
             }
     
+    def get_charge_status(self, charge_id: int) -> Dict[str, Any]:
+        """
+        Get charge status from Efi Bank
+        
+        Args:
+            charge_id: The Efi Bank charge ID
+            
+        Returns:
+            Dictionary with charge status information
+        """
+        try:
+            logger.info(f"Getting status for charge: {charge_id}")
+            
+            params = {"id": charge_id}
+            response = self.gn.detail_charge(params=params)
+            
+            if response.get("code") == 200:
+                data = response.get("data", {})
+                status = data.get("status", "")
+                
+                logger.info(f"Charge {charge_id} status: {status}")
+                
+                return {
+                    "success": True,
+                    "status": status,
+                    "data": data
+                }
+            else:
+                logger.error(f"Failed to get charge status: {response}")
+                return {
+                    "success": False,
+                    "error": response.get("error_description", "Erro ao consultar cobrança")
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting charge status: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
     def cancel_charge(self, charge_id: int) -> Dict[str, Any]:
         """
         Cancel a charge
