@@ -18,8 +18,8 @@ import { Shield, Users, UserPlus, Building2, Phone, Mail, MapPin, DollarSign, Ca
 import AdminProviderDashboardSimple from "./components/AdminProviderDashboardSimple";
 import "./App.css";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
+const BACKEND_URL = 'https://www.controleisp.com.br';
+const API = `${BACKEND_URL}/api`;
 
 // ERP Logo Component with Animation
 const ERPLogo = ({ src, alt, delay }) => {
