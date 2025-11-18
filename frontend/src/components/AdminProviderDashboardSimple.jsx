@@ -775,14 +775,71 @@ const AdminProviderDashboardSimple = () => {
 
               {activeTab === 'documentos' && selectedProvider && (
                 <div className="space-y-6">
-                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                    <h3 className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
-                      <Shield className="w-5 h-5" />
-                      Documentos de Identificação - Verificação de Segurança
-                    </h3>
-                    <p className="text-sm text-yellow-800">
-                      Fotos enviadas pelo provedor durante o cadastro para verificação de identidade.
+                  {/* Status de Verificação */}
+                  <div className={`border p-4 rounded-lg ${
+                    selectedProvider.document_status === 'approved' ? 'bg-green-50 border-green-200' :
+                    selectedProvider.document_status === 'rejected' ? 'bg-red-50 border-red-200' :
+                    'bg-yellow-50 border-yellow-200'
+                  }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className={`font-semibold flex items-center gap-2 ${
+                        selectedProvider.document_status === 'approved' ? 'text-green-900' :
+                        selectedProvider.document_status === 'rejected' ? 'text-red-900' :
+                        'text-yellow-900'
+                      }`}>
+                        <Shield className="w-5 h-5" />
+                        Documentos de Identificação - Verificação de Segurança
+                      </h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        selectedProvider.document_status === 'approved' ? 'bg-green-600 text-white' :
+                        selectedProvider.document_status === 'rejected' ? 'bg-red-600 text-white' :
+                        'bg-yellow-600 text-white'
+                      }`}>
+                        {selectedProvider.document_status === 'approved' ? '✓ APROVADO' :
+                         selectedProvider.document_status === 'rejected' ? '✗ REPROVADO' :
+                         '⏳ PENDENTE'}
+                      </span>
+                    </div>
+                    <p className={`text-sm ${
+                      selectedProvider.document_status === 'approved' ? 'text-green-800' :
+                      selectedProvider.document_status === 'rejected' ? 'text-red-800' :
+                      'text-yellow-800'
+                    }`}>
+                      {selectedProvider.document_status === 'approved' 
+                        ? 'Documentos verificados e aprovados. Não é necessário verificar novamente.'
+                        : selectedProvider.document_status === 'rejected'
+                        ? 'Documentos foram reprovados. Verifique o motivo abaixo.'
+                        : 'Fotos enviadas pelo provedor durante o cadastro para verificação de identidade.'}
                     </p>
+                    {selectedProvider.document_verified_at && (
+                      <p className="text-xs text-gray-600 mt-2">
+                        Verificado em: {new Date(selectedProvider.document_verified_at).toLocaleString('pt-BR')}
+                      </p>
+                    )}
+                    {selectedProvider.document_rejection_reason && (
+                      <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded">
+                        <p className="text-sm font-semibold text-red-900">Motivo da Reprovação:</p>
+                        <p className="text-sm text-red-800">{selectedProvider.document_rejection_reason}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Botões de Ação */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleApproveDocuments}
+                      disabled={loading || selectedProvider.document_status === 'approved'}
+                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                    >
+                      ✓ Aprovar Documentos
+                    </button>
+                    <button
+                      onClick={handleRejectDocuments}
+                      disabled={loading}
+                      className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                    >
+                      ✗ Reprovar Documentos
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
