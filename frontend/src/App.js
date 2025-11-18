@@ -6359,6 +6359,21 @@ const ProviderDashboard = ({ onLogout }) => {
                 Integrações
               </Button>
               
+              {/* Botão de Notificações */}
+              <Button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                variant="outline" 
+                className="border-blue-200 text-blue-600 hover:bg-blue-50 relative"
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                Notificações
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {unreadCount}
+                  </span>
+                )}
+              </Button>
+              
               <Button 
                 onClick={onLogout} 
                 variant="outline" 
