@@ -175,6 +175,21 @@ frontend:
         comment: "FUNCIONALIDADE BOLETO 100% TESTADA E FUNCIONANDO! Teste completo realizado: 1) Admin gera financeiro com 2 parcelas boleto ✅, 2) Endpoint GET /admin/providers/{id}/payments retorna 8 pagamentos com todos os campos obrigatórios (payment_id, link, pdf, barcode, status=pending, amount=199.00, created_at, expires_at) ✅, 3) Endpoint GET /provider/my-payments retorna os mesmos 8 pagamentos com campos link e pdf válidos ✅. Links Efi Bank funcionais: https://download.gerencianet.com.br/v1/400336_XX_XXXXX/400336-XX-XXXXX?sandbox=true e PDFs: https://download.gerencianet.com.br/400336_XX_XXXXX/400336-XX-XXXXX.pdf?sandbox=true. Provedores podem clicar e imprimir boletos perfeitamente."
 
 backend:
+  - task: "Correção erro 400 na geração de boletos - Dados do Provider"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/backend/efi_service.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Erro 400 'Erro ao criar cobrança' quando provedor aceita termos e sistema tenta gerar parcelas automáticas no ambiente de produção do Efi Bank."
+      - working: "NA"
+        agent: "main"
+        comment: "CAUSA RAIZ IDENTIFICADA: O modelo Provider não continha os campos cpf, cep, number, city, state. Quando o provedor se registrava, esses dados eram perdidos. O efi_service.py usava dados hardcoded (CPF teste: 12345678909, endereço: Rua Exemplo, etc) que funcionam no sandbox mas são rejeitados pela API de produção. CORREÇÕES APLICADAS: 1) Adicionados campos cpf, cep, number, city, state ao modelo Provider (server.py linha 717-747), 2) Modificado efi_service.py para usar dados reais do provider com validação robusta (linhas 100-147), 3) Atualizado create_efi_boleto_payment para enviar todos os campos necessários (server.py linha 1493-1527). Agora os dados reais do provedor são enviados para a API do Efi Bank."
+
   - task: "Integração Efi Bank para geração PIX/Boleto"
     implemented: true
     working: true
